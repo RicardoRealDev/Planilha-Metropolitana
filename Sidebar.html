@@ -1,0 +1,2813 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --blue: #003f88;
+      --blue-2: #0756b8;
+      --blue-3: #0b72d9;
+      --blue-dark: #061b3f;
+      --ink: #0d1528;
+      --muted: #62708a;
+      --soft: #eef3f9;
+      --line: rgba(13, 21, 40, 0.10);
+      --card: rgba(255,255,255,0.86);
+      --card-solid: #ffffff;
+      --yellow: #f6c500;
+      --green: #0e7a45;
+      --green-soft: #e9f8ef;
+      --red: #c52828;
+      --red-soft: #ffe9e8;
+      --amber-soft: #fff7da;
+      --cyan: #22d3ee;
+      --cyan-bright: #67e8f9;
+      --violet: #7c3aed;
+      --magenta: #ec4899;
+      --orange: #f97316;
+      --lime: #84cc16;
+      --tech-dark: #071426;
+      --tech-panel: rgba(255,255,255,.88);
+      --shadow: 0 18px 60px rgba(17, 36, 66, .12);
+      --shadow-soft: 0 8px 24px rgba(17, 36, 66, .08);
+      --radius-xl: 28px;
+      --radius: 18px;
+      --radius-sm: 12px;
+      --ease: cubic-bezier(.19, 1, .22, 1);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      font-size: 14px;
+      background:
+        linear-gradient(120deg, rgba(0,63,136,.09), transparent 36%),
+        radial-gradient(circle at 92% 6%, rgba(246,197,0,.20), transparent 30%),
+        #f6f8fb;
+      overflow-x: hidden;
+    }
+
+    button, input, select, textarea { font-family: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+
+    .app { min-height: 100vh; display: flex; flex-direction: column; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 14px 16px 16px;
+      background: rgba(246, 248, 251, .84);
+      backdrop-filter: blur(18px) saturate(1.2);
+      border-bottom: 1px solid rgba(148,163,184,.24);
+      box-shadow: 0 10px 32px rgba(15,23,42,.05);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+    .brand-mark {
+      position: relative;
+      width: 46px;
+      height: 46px;
+      flex: 0 0 46px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #002f70 0 48%, #fff 48% 54%, #f6c500 54% 100%);
+      box-shadow: 0 12px 26px rgba(0,63,136,.22);
+    }
+
+    .brand-mark::before {
+      content: '';
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      left: 19px;
+      top: 18px;
+      background: #f6c500;
+      box-shadow: 0 0 0 3px rgba(255,255,255,.8);
+    }
+
+    .brand-title { min-width: 0; }
+    .brand-title strong { display:block; font-size: 19px; line-height: 1.05; letter-spacing: -.02em; }
+    .brand-title span { display:block; color: var(--muted); margin-top: 4px; font-size: 12.5px; }
+
+    .utility { display: flex; align-items: center; gap: 8px; }
+
+    .size-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 36px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.72);
+      border-radius: 999px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .size-btn {
+      width: 26px;
+      height: 26px;
+      display: inline-grid;
+      place-items: center;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: #637087;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .18s var(--ease), background .18s var(--ease), color .18s var(--ease);
+    }
+    .size-btn:hover { background: #eef4fb; transform: translateY(-1px); color: var(--blue); }
+    .size-btn.active { background: var(--blue); color: #fff; box-shadow: 0 8px 18px rgba(0,63,136,.25); }
+
+    .context-strip {
+      display: grid;
+      grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr) auto auto;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .pill, .live-badge {
+      min-height: 42px;
+      padding: 8px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.76);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      white-space: nowrap;
+    }
+    .pill span { color: var(--muted); text-transform: uppercase; font-size: 11px; font-weight: 900; letter-spacing: .05em; }
+    .pill b { font-size: 13px; max-width: 210px; overflow: hidden; text-overflow: ellipsis; }
+
+    .live-badge {
+      position: relative;
+      font-weight: 950;
+      letter-spacing: .04em;
+      color: #7f1d1d;
+      background: #fff5f5;
+      border-color: rgba(197,40,40,.18);
+      justify-content: center;
+      padding-left: 34px;
+      text-transform: uppercase;
+    }
+    .live-badge::before {
+      content: '';
+      position: absolute;
+      left: 14px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ef4444;
+      box-shadow: 0 0 0 0 rgba(239,68,68,.52);
+    }
+    .live-badge.on::before { animation: livePulse 1.25s infinite; }
+    .live-badge.off { color: #68758b; background: rgba(255,255,255,.72); }
+    .live-badge.off::before { background: #94a3b8; box-shadow: none; }
+
+    @keyframes livePulse {
+      0% { box-shadow: 0 0 0 0 rgba(239,68,68,.48); transform: scale(1); }
+      70% { box-shadow: 0 0 0 10px rgba(239,68,68,0); transform: scale(1.08); }
+      100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); transform: scale(1); }
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      padding: 6px;
+      background: rgba(255,255,255,.70);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.7), var(--shadow-soft);
+    }
+    .tab {
+      border: 0;
+      min-height: 42px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: transparent;
+      color: #66758d;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform .22s var(--ease), color .22s var(--ease), background .22s var(--ease), box-shadow .22s var(--ease);
+    }
+    .tab:hover { transform: translateY(-1px); color: var(--blue); background: rgba(0,63,136,.06); }
+    .tab.active { background: linear-gradient(135deg, var(--blue), var(--blue-2)); color: #fff; box-shadow: 0 12px 28px rgba(0,63,136,.24); }
+
+    .content {
+      width: min(100%, 1420px);
+      margin: 0 auto;
+      padding: 18px 16px 60px;
+    }
+
+    .screen { display: none; opacity: 0; transform: translateY(10px); }
+    .screen.active { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; opacity: 1; transform: translateY(0); animation: screenIn .34s var(--ease); }
+    .screen.single { grid-template-columns: 1fr; }
+    @keyframes screenIn { from { opacity: 0; transform: translateY(14px) scale(.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+    .card, details {
+      position: relative;
+      border: 1px solid rgba(13,21,40,.10);
+      border-radius: var(--radius-xl);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      padding: 18px;
+      overflow: hidden;
+    }
+    .card::before, details::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,.64), rgba(255,255,255,0));
+      opacity: .55;
+    }
+    .card > *, details > * { position: relative; z-index: 1; }
+
+    /* Hover premium nos blocos principais.
+       O card ganha profundidade, sobe levemente e destaca a borda. */
+    .card, details {
+      transition:
+        transform .24s var(--ease),
+        box-shadow .24s var(--ease),
+        border-color .24s var(--ease),
+        background .24s var(--ease),
+        filter .24s var(--ease);
+      will-change: transform;
+    }
+    .card:hover, details:hover {
+      transform: translateY(-4px);
+      border-color: rgba(0,63,136,.20);
+      background: rgba(255,255,255,.94);
+      box-shadow: 0 24px 54px rgba(13,21,40,.15);
+    }
+    .card:hover::before, details:hover::before { opacity: .78; }
+    .card:hover .card-title, details:hover .card-title { color: var(--blue); }
+
+    .wide { grid-column: 1 / -1; }
+
+    .card-title {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 950;
+      letter-spacing: -.02em;
+    }
+    .card-title > span:first-child { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+    .step {
+      display:inline-grid;
+      place-items:center;
+      min-width: 25px;
+      height: 25px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: #eaf2ff;
+      color: var(--blue);
+      font-weight: 950;
+      font-size: 12px;
+    }
+
+    .grid-2 { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+    label { display:block; margin: 11px 0 6px; font-size: 11px; color: var(--muted); text-transform: uppercase; font-weight: 950; letter-spacing: .055em; }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid rgba(13,21,40,.12);
+      border-radius: 16px;
+      background: rgba(255,255,255,.78);
+      color: var(--ink);
+      padding: 13px 14px;
+      font-size: 14px;
+      outline: none;
+      transition: border .2s var(--ease), box-shadow .2s var(--ease), background .2s var(--ease);
+    }
+    textarea { min-height: 92px; resize: vertical; line-height: 1.5; }
+    input:focus, select:focus, textarea:focus { border-color: rgba(0,63,136,.42); box-shadow: 0 0 0 4px rgba(0,63,136,.10); background: #fff; }
+
+    button { transition: transform .18s var(--ease), box-shadow .18s var(--ease), filter .18s var(--ease), background .18s var(--ease); }
+    button:active { transform: translateY(1px) scale(.985); }
+    .btn-primary, .btn-dark, .btn-secondary, .btn-danger, .btn-ok, .vote-primary, .vote-no, .vote-neutral, .vote-muted, .vote-candidate {
+      width:100%;
+      border:0;
+      border-radius: 16px;
+      padding: 13px 14px;
+      font-weight: 950;
+      cursor:pointer;
+      margin-top: 10px;
+      letter-spacing: -.01em;
+    }
+    .btn-primary { background: linear-gradient(135deg, var(--blue), var(--blue-2)); color:#fff; box-shadow: 0 14px 28px rgba(0,63,136,.23); }
+    .btn-dark { background: linear-gradient(135deg, #0d1528, #1c2d4e); color:#fff; box-shadow: 0 14px 30px rgba(13,21,40,.24); }
+    .btn-secondary { background: #edf3fb; color:#1c3358; border: 1px solid rgba(0,63,136,.08); }
+    .btn-danger { background: var(--red-soft); color: #9f1d1d; border: 1px solid rgba(197,40,40,.10); }
+    .btn-ok { background: linear-gradient(135deg, #0f7d47, #10a56d); color:#fff; box-shadow: 0 14px 28px rgba(14,122,69,.22); }
+    .btn-row { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+    .btn-primary:hover, .btn-dark:hover, .btn-ok:hover { filter: brightness(1.03); box-shadow: 0 18px 34px rgba(0,63,136,.25); }
+    .btn-secondary:hover, .btn-danger:hover { transform: translateY(-1px); }
+
+    .chip {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height: 28px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: #edf3fb;
+      color: #52637f;
+      font-size: 12px;
+      font-weight: 950;
+      border: 1px solid rgba(13,21,40,.07);
+    }
+    .chip.ok { background: var(--green-soft); color: var(--green); }
+    .chip.warn { background: var(--amber-soft); color: #856404; }
+
+    .mini { color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .hidden { display:none !important; }
+
+    .status-grid, .dash-card-grid { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; }
+    .status-box, .dash-card {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(255,255,255,.72);
+      padding: 16px;
+      min-height: 92px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+      transition: transform .22s var(--ease), box-shadow .22s var(--ease), border-color .22s var(--ease), background .22s var(--ease);
+      will-change: transform;
+    }
+    .status-box:hover, .dash-card:hover {
+      transform: translateY(-5px) scale(1.01);
+      background: #fff;
+      border-color: rgba(0,63,136,.20);
+      box-shadow: 0 18px 38px rgba(13,21,40,.12);
+    }
+    .status-box b, .dash-card b { font-size: 30px; line-height: .95; letter-spacing: -.04em; color: #0b1224; }
+    .status-box span, .dash-card span { color: var(--muted); text-transform: uppercase; font-weight: 950; font-size: 11px; letter-spacing: .045em; }
+
+    /* Evita que nomes de conselho e Meeting IDs ultrapassem seus cards. */
+    .status-box { min-width: 0; overflow: hidden; }
+    .status-box b {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      font-size: clamp(18px, 2vw, 28px);
+      line-height: 1.05;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    #liveConselho, #liveMeeting {
+      font-size: clamp(17px, 1.8vw, 26px);
+      font-variant-numeric: tabular-nums;
+    }
+
+    summary { cursor:pointer; font-weight: 950; color: #1f3154; }
+    details[open] summary { margin-bottom: 12px; }
+
+    .result-list { margin-top: 12px; display:grid; gap: 8px; }
+    .result-item {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255,255,255,.72);
+      padding: 12px;
+      cursor:pointer;
+      transition: background .18s var(--ease), transform .18s var(--ease), border .18s var(--ease);
+    }
+    .result-item:hover { background: #fff; transform: translateY(-1px); border-color: rgba(0,63,136,.22); }
+    .result-item.selected { background:#eaf2ff; border-color: rgba(0,63,136,.32); }
+
+    .vote-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; margin-top: 8px; }
+    .wide-vote { grid-column: 1 / -1; }
+    .vote-primary { background: linear-gradient(135deg, #0e7a45, #10a56d); color:#fff; }
+    .vote-no { background: linear-gradient(135deg, #b42318, #ef4444); color:#fff; }
+    .vote-neutral { background: #fff5dc; color:#8a5a00; border:1px solid rgba(246,197,0,.25); }
+    .vote-muted { background:#edf1f7; color:#52637f; }
+    .vote-candidate { background: linear-gradient(135deg, var(--blue), #0b72d9); color:#fff; }
+
+    .dashboard-hero {
+      min-height: 170px;
+      padding: 24px;
+      color: #fff;
+      background:
+        linear-gradient(135deg, rgba(6,27,63,.98), rgba(0,63,136,.96) 55%, rgba(7,86,184,.88)),
+        radial-gradient(circle at 84% 20%, rgba(246,197,0,.34), transparent 34%);
+      border: 0;
+      overflow:hidden;
+    }
+    .dashboard-hero::before {
+      content:'';
+      position:absolute;
+      inset:auto -80px -120px auto;
+      width: 360px;
+      height: 360px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(246,197,0,.34), rgba(246,197,0,.02) 64%, transparent 65%);
+      opacity: .92;
+      animation: floatOrb 7s ease-in-out infinite;
+    }
+    .dashboard-hero::after {
+      content:'';
+      position:absolute;
+      inset:0;
+      background-image: linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(180deg, rgba(255,255,255,.06) 1px, transparent 1px);
+      background-size: 38px 38px;
+      mask-image: linear-gradient(90deg, rgba(0,0,0,.6), transparent 75%);
+      opacity:.45;
+    }
+    @keyframes floatOrb { 0%,100%{ transform: translate(0,0) scale(1); } 50%{ transform: translate(-18px, 10px) scale(1.04); } }
+    .hero-label { color: rgba(255,255,255,.72); font-weight: 950; text-transform: uppercase; letter-spacing:.09em; font-size: 11px; position:relative; z-index:1; }
+    .hero-result { margin-top: 12px; font-size: clamp(30px, 4.3vw, 54px); line-height: .98; font-weight: 1000; letter-spacing: -.055em; max-width: 980px; position:relative; z-index:1; }
+    .hero-sub { margin-top: 12px; color: rgba(255,255,255,.82); font-weight: 650; font-size: 14px; position:relative; z-index:1; }
+
+    .dashboard-hero:hover {
+      transform: translateY(-3px) scale(1.003);
+      border-color: transparent;
+      background:
+        linear-gradient(135deg, rgba(6,27,63,.98), rgba(0,63,136,.96) 55%, rgba(7,86,184,.88)),
+        radial-gradient(circle at 84% 20%, rgba(246,197,0,.34), transparent 34%);
+      box-shadow: 0 30px 70px rgba(0,63,136,.24);
+      filter: saturate(1.04);
+    }
+
+    .dashboard-hero:hover::before { opacity: .92; }
+
+    .progress-wrap + .progress-wrap { margin-top: 16px; }
+    .progress-top { display:flex; justify-content:space-between; gap: 10px; color: var(--muted); font-size: 12px; font-weight: 950; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; }
+    .progress-bar, .bar-track { height: 12px; border-radius: 999px; background: #e9eef6; overflow: hidden; }
+    .progress-fill, .bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--blue), var(--yellow)); transition: width .55s var(--ease); }
+
+    .donut-row { display:grid; grid-template-columns: 160px 1fr; gap: 18px; align-items:center; }
+    .donut { width: 150px; height: 150px; border-radius: 50%; background: conic-gradient(#e5e7eb 0 100%); box-shadow: inset 0 0 0 18px rgba(255,255,255,.9), var(--shadow-soft); }
+    .legend-list, .bar-list, .alert-list { display:grid; gap: 10px; }
+    .legend-item, .bar-item, .alert-item {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.66);
+      padding: 10px 12px;
+    }
+    .legend-item { display:flex; align-items:center; justify-content:space-between; gap: 10px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display:inline-block; margin-right: 8px; }
+    .bar-item-label { display:flex; justify-content:space-between; margin-bottom: 8px; font-size: 12px; font-weight: 850; color: #32425f; }
+
+    #dashResumoOficial, #dashUltimos { display:grid; gap: 8px; }
+    #dashResumoOficial table, #dashUltimos table { width:100%; border-collapse: collapse; overflow:hidden; border-radius: 16px; }
+    #dashResumoOficial td, #dashResumoOficial th, #dashUltimos td, #dashUltimos th { padding: 10px; border-bottom:1px solid rgba(13,21,40,.08); text-align:left; }
+    #dashResumoOficial tr:nth-child(even), #dashUltimos tr:nth-child(even) { background: rgba(237,243,251,.52); }
+
+
+
+    /* Mapa temático de presença municipal no Dashboard. */
+    .map-presenca-card { overflow: visible; }
+    .map-toolbar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .map-toolbar .chip { width:auto; margin:0; padding:7px 11px; cursor:pointer; }
+    .map-summary {
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap:10px;
+      margin-bottom:14px;
+    }
+    .map-summary-item {
+      min-width:0;
+      padding:12px 14px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:rgba(255,255,255,.68);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .map-summary-item span { color:var(--muted); font-size:11px; font-weight:950; text-transform:uppercase; letter-spacing:.045em; }
+    .map-summary-item b { font-size:24px; line-height:1; letter-spacing:-.04em; }
+    .map-layout { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(230px,.65fr); gap:16px; align-items:start; }
+    .map-shell {
+      min-height:500px;
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:
+        radial-gradient(circle at 85% 12%, rgba(246,197,0,.15), transparent 28%),
+        linear-gradient(145deg, rgba(234,242,255,.72), rgba(255,255,255,.92));
+      padding:12px;
+      overflow:hidden;
+      position:relative;
+    }
+    .map-canvas { width:100%; min-height:474px; display:grid; place-items:center; position:relative; }
+    .map-canvas svg { width:100%; height:474px; display:block; overflow:visible; }
+    .map-municipio {
+      stroke:#263449;
+      stroke-width:.7;
+      vector-effect:non-scaling-stroke;
+      cursor:pointer;
+      transition:fill .18s var(--ease), opacity .18s var(--ease), filter .18s var(--ease), stroke-width .18s var(--ease);
+    }
+    .map-municipio:hover, .map-municipio:focus {
+      opacity:.9;
+      filter:drop-shadow(0 3px 5px rgba(15,23,42,.22));
+      stroke-width:1.65;
+      outline:none;
+    }
+    .map-municipio.selected { stroke:#061b3f; stroke-width:2.2; filter:drop-shadow(0 4px 7px rgba(15,23,42,.30)); }
+    .map-label {
+      font-size:6px;
+      font-weight:850;
+      text-anchor:middle;
+      dominant-baseline:middle;
+      pointer-events:none;
+      fill:#111827;
+      paint-order:stroke;
+      stroke:rgba(255,255,255,.96);
+      stroke-width:2.2px;
+      stroke-linejoin:round;
+    }
+    .map-side { display:grid; gap:12px; }
+    .map-legend, .map-selected, .map-list-wrap {
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:rgba(255,255,255,.72);
+      padding:13px;
+    }
+    .map-legend { display:grid; gap:9px; }
+    .map-legend-item { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:12px; font-weight:850; color:#334155; }
+    .map-legend-label { display:flex; align-items:center; gap:8px; }
+    .map-swatch { width:14px; height:14px; border-radius:5px; border:1px solid rgba(15,23,42,.16); flex:0 0 14px; }
+    .map-swatch.presente { background:#22a65a; }
+    .map-swatch.ausente { background:#9ca3af; }
+    .map-swatch.sem-dado { background:#eef2f7; }
+    .map-selected strong { display:block; font-size:15px; color:#17233b; margin-bottom:5px; }
+    .map-selected span { display:block; color:var(--muted); font-size:12px; line-height:1.45; }
+    .map-list-title { margin-bottom:9px; font-size:11px; color:var(--muted); text-transform:uppercase; font-weight:950; letter-spacing:.05em; }
+    .map-list { max-height:270px; overflow:auto; display:grid; gap:6px; padding-right:3px; }
+    .map-list-item {
+      width:100%;
+      margin:0;
+      padding:9px 10px;
+      border:1px solid rgba(13,21,40,.08);
+      border-radius:12px;
+      background:rgba(255,255,255,.72);
+      color:#263449;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      text-align:left;
+      cursor:pointer;
+    }
+    .map-list-item:hover { transform:translateY(-1px); background:#fff; border-color:rgba(0,63,136,.20); }
+    .map-list-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; font-weight:850; }
+    .map-list-status { flex:0 0 auto; width:10px; height:10px; border-radius:50%; border:1px solid rgba(15,23,42,.15); }
+    .map-list-status.presente { background:#22a65a; }
+    .map-list-status.ausente { background:#9ca3af; }
+    .map-empty { color:var(--muted); font-size:12px; line-height:1.55; text-align:center; padding:30px 18px; }
+    .map-source { margin-top:10px; color:var(--muted); font-size:10px; text-align:right; }
+
+
+
+    /* Dashboard tecnológico e multicolorido. */
+    #screen-dashboard {
+      position: relative;
+      isolation: isolate;
+      padding: 8px;
+      border-radius: 32px;
+      background:
+        radial-gradient(circle at 5% 3%, rgba(34,211,238,.17), transparent 24%),
+        radial-gradient(circle at 97% 8%, rgba(236,72,153,.14), transparent 27%),
+        radial-gradient(circle at 75% 72%, rgba(124,58,237,.12), transparent 30%),
+        linear-gradient(145deg, rgba(235,245,255,.88), rgba(252,247,255,.82) 46%, rgba(255,250,230,.75));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.65), 0 20px 70px rgba(32,66,120,.10);
+      overflow: hidden;
+    }
+    #screen-dashboard::before,
+    #screen-dashboard::after {
+      content: '';
+      position: absolute;
+      z-index: -1;
+      width: 310px;
+      height: 310px;
+      border-radius: 50%;
+      filter: blur(18px);
+      pointer-events: none;
+      opacity: .62;
+      animation: dashboardAmbient 12s ease-in-out infinite alternate;
+    }
+    #screen-dashboard::before {
+      top: 7%;
+      left: -170px;
+      background: radial-gradient(circle, rgba(34,211,238,.34), transparent 68%);
+    }
+    #screen-dashboard::after {
+      right: -165px;
+      bottom: 13%;
+      background: radial-gradient(circle, rgba(236,72,153,.28), transparent 68%);
+      animation-delay: -5s;
+    }
+    @keyframes dashboardAmbient {
+      from { transform: translate3d(0, -10px, 0) scale(.94); }
+      to { transform: translate3d(28px, 28px, 0) scale(1.08); }
+    }
+
+    #screen-dashboard .card {
+      --accent: var(--cyan);
+      border-color: rgba(91,112,153,.17);
+    }
+    #screen-dashboard .tech-panel:not(.dashboard-hero) {
+      background:
+        linear-gradient(145deg, rgba(255,255,255,.94), rgba(247,250,255,.82)),
+        var(--tech-panel);
+      box-shadow:
+        inset 0 2px 0 var(--accent),
+        0 18px 48px rgba(15,37,74,.11),
+        0 0 0 1px rgba(255,255,255,.72);
+    }
+    #screen-dashboard .tech-panel:not(.dashboard-hero)::before {
+      background:
+        linear-gradient(115deg, rgba(255,255,255,.75), transparent 40%),
+        radial-gradient(circle at 96% -8%, rgba(34,211,238,.14), transparent 30%);
+      opacity: .72;
+    }
+    #screen-dashboard .tech-panel:not(.dashboard-hero)::after {
+      content: '';
+      position: absolute;
+      z-index: 0;
+      top: -44px;
+      right: -38px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 1px solid var(--accent);
+      box-shadow: 0 0 38px var(--accent), inset 0 0 24px rgba(255,255,255,.28);
+      opacity: .09;
+      pointer-events: none;
+      transition: opacity .25s var(--ease), transform .4s var(--ease);
+    }
+    #screen-dashboard .tech-panel:hover::after {
+      opacity: .18;
+      transform: scale(1.12) rotate(18deg);
+    }
+    #screen-dashboard .tech-panel:hover {
+      border-color: var(--accent);
+      box-shadow:
+        inset 0 2px 0 var(--accent),
+        0 25px 56px rgba(15,37,74,.16),
+        0 0 28px rgba(34,211,238,.08);
+    }
+    #screen-dashboard .card-title {
+      color: #14213d;
+      letter-spacing: -.025em;
+    }
+    #screen-dashboard .card-title > span:first-child::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      flex: 0 0 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 5px rgba(34,211,238,.09), 0 0 16px var(--accent);
+      animation: techNodePulse 2.3s ease-in-out infinite;
+    }
+    @keyframes techNodePulse {
+      0%, 100% { transform: scale(.9); opacity: .72; }
+      50% { transform: scale(1.18); opacity: 1; }
+    }
+
+    .dashboard-indicators { --accent: #22d3ee !important; }
+    .dash-quorum-card { --accent: #8b5cf6 !important; }
+    .dash-votes-card { --accent: #ec4899 !important; }
+    .dash-segmentos-card { --accent: #f97316 !important; }
+    .dash-pendencias-card { --accent: #ef4444 !important; }
+    .map-presenca-card { --accent: #22c55e !important; }
+    .dash-resumo-card { --accent: #3b82f6 !important; }
+    .dash-ultimos-card { --accent: #eab308 !important; }
+
+    #screen-dashboard.active .tech-panel {
+      animation: techCardEnter .62s var(--ease) both;
+    }
+    #screen-dashboard.active .tech-panel:nth-child(1) { animation-delay: .02s; }
+    #screen-dashboard.active .tech-panel:nth-child(2) { animation-delay: .07s; }
+    #screen-dashboard.active .tech-panel:nth-child(3) { animation-delay: .12s; }
+    #screen-dashboard.active .tech-panel:nth-child(4) { animation-delay: .17s; }
+    #screen-dashboard.active .tech-panel:nth-child(5) { animation-delay: .22s; }
+    #screen-dashboard.active .tech-panel:nth-child(6) { animation-delay: .27s; }
+    #screen-dashboard.active .tech-panel:nth-child(7) { animation-delay: .32s; }
+    #screen-dashboard.active .tech-panel:nth-child(8) { animation-delay: .37s; }
+    #screen-dashboard.active .tech-panel:nth-child(9) { animation-delay: .42s; }
+    @keyframes techCardEnter {
+      from { opacity: 0; transform: translateY(18px) scale(.985); filter: blur(3px); }
+      to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+
+    .dashboard-hero {
+      min-height: 210px;
+      padding: 28px;
+      background:
+        radial-gradient(circle at 84% 20%, rgba(250,204,21,.38), transparent 28%),
+        radial-gradient(circle at 67% 78%, rgba(236,72,153,.34), transparent 28%),
+        linear-gradient(120deg, #061b3f 0%, #064e8a 34%, #5b21b6 70%, #c02670 112%);
+      background-size: 145% 145%;
+      animation: heroGradientMove 11s ease-in-out infinite alternate;
+      box-shadow: 0 28px 75px rgba(47,46,142,.27), 0 0 45px rgba(34,211,238,.12);
+    }
+    @keyframes heroGradientMove {
+      from { background-position: 0% 35%; }
+      to { background-position: 100% 66%; }
+    }
+    .dashboard-hero::before {
+      inset: auto -90px -140px auto;
+      width: 430px;
+      height: 430px;
+      background:
+        repeating-radial-gradient(circle, rgba(255,255,255,.14) 0 1px, transparent 2px 22px),
+        radial-gradient(circle, rgba(34,211,238,.28), rgba(124,58,237,.08) 58%, transparent 68%);
+      animation: heroRadar 13s linear infinite;
+    }
+    @keyframes heroRadar {
+      to { transform: rotate(360deg); }
+    }
+    .dashboard-hero::after {
+      background-image:
+        linear-gradient(90deg, rgba(255,255,255,.065) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(255,255,255,.065) 1px, transparent 1px),
+        linear-gradient(105deg, transparent 42%, rgba(103,232,249,.16) 50%, transparent 58%);
+      background-size: 38px 38px, 38px 38px, 230% 100%;
+      animation: heroScan 6.5s linear infinite;
+      opacity: .58;
+    }
+    @keyframes heroScan {
+      from { background-position: 0 0, 0 0, 170% 0; }
+      to { background-position: 38px 0, 0 38px, -170% 0; }
+    }
+    .dashboard-hero:hover {
+      background:
+        radial-gradient(circle at 84% 20%, rgba(250,204,21,.44), transparent 28%),
+        radial-gradient(circle at 67% 78%, rgba(236,72,153,.38), transparent 28%),
+        linear-gradient(120deg, #061b3f 0%, #064e8a 34%, #5b21b6 70%, #c02670 112%);
+      background-size: 145% 145%;
+      box-shadow: 0 34px 86px rgba(47,46,142,.34), 0 0 55px rgba(34,211,238,.17);
+    }
+    .hero-topline { display:flex; align-items:center; justify-content:space-between; gap:14px; position:relative; z-index:2; }
+    .hero-live {
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:7px 10px;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:999px;
+      background:rgba(2,12,33,.28);
+      backdrop-filter:blur(10px);
+      color:rgba(255,255,255,.86);
+      font-size:10px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.055em;
+      white-space:nowrap;
+    }
+    .hero-live i {
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:#34d399;
+      box-shadow:0 0 0 0 rgba(52,211,153,.55), 0 0 14px rgba(52,211,153,.9);
+      animation: liveDataPulse 1.7s infinite;
+    }
+    .hero-live b { color:#fff; font-variant-numeric:tabular-nums; }
+    @keyframes liveDataPulse {
+      0% { box-shadow:0 0 0 0 rgba(52,211,153,.52), 0 0 14px rgba(52,211,153,.8); }
+      70% { box-shadow:0 0 0 8px rgba(52,211,153,0), 0 0 18px rgba(52,211,153,.85); }
+      100% { box-shadow:0 0 0 0 rgba(52,211,153,0), 0 0 14px rgba(52,211,153,.8); }
+    }
+    .hero-label { color:rgba(255,255,255,.74); }
+    .hero-result {
+      margin-top:18px;
+      max-width:1100px;
+      text-shadow:0 8px 35px rgba(0,0,0,.24), 0 0 26px rgba(103,232,249,.12);
+    }
+    .hero-sub { color:rgba(255,255,255,.83); }
+    .hero-spectrum {
+      display:flex;
+      align-items:flex-end;
+      gap:5px;
+      height:24px;
+      margin-top:18px;
+      position:relative;
+      z-index:2;
+      opacity:.86;
+    }
+    .hero-spectrum i {
+      width:5px;
+      height:8px;
+      border-radius:999px;
+      background:linear-gradient(180deg, #67e8f9, #facc15 55%, #f472b6);
+      box-shadow:0 0 11px rgba(103,232,249,.45);
+      animation:spectrumBar 1.55s ease-in-out infinite alternate;
+      transform-origin:bottom;
+    }
+    .hero-spectrum i:nth-child(2n) { animation-delay:-.35s; }
+    .hero-spectrum i:nth-child(3n) { animation-delay:-.7s; }
+    .hero-spectrum i:nth-child(5n) { animation-delay:-1.05s; }
+    @keyframes spectrumBar {
+      from { transform:scaleY(.55); opacity:.55; }
+      to { transform:scaleY(2.7); opacity:1; }
+    }
+
+    .dashboard-indicators .dash-card-grid { gap:14px; }
+    #screen-dashboard .dash-card {
+      position:relative;
+      min-height:112px;
+      overflow:hidden;
+      border-color:rgba(255,255,255,.65);
+      box-shadow:0 13px 32px rgba(30,48,90,.10), inset 0 1px 0 rgba(255,255,255,.9);
+    }
+    #screen-dashboard .dash-card::before {
+      content:'';
+      position:absolute;
+      width:110px;
+      height:110px;
+      right:-35px;
+      bottom:-55px;
+      border-radius:50%;
+      background:var(--metric-glow, rgba(34,211,238,.28));
+      filter:blur(3px);
+      opacity:.8;
+      transition:transform .35s var(--ease);
+    }
+    #screen-dashboard .dash-card:hover::before { transform:scale(1.28); }
+    #screen-dashboard .dash-card b {
+      position:relative;
+      z-index:1;
+      font-family:"SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size:clamp(30px, 3.2vw, 42px);
+      color:var(--metric-color, #0756b8);
+      text-shadow:0 0 24px var(--metric-shadow, rgba(34,211,238,.22));
+    }
+    #screen-dashboard .dash-card span { position:relative; z-index:1; color:#4d5b75; }
+    .metric-presentes {
+      --metric-color:#047857;
+      --metric-glow:rgba(52,211,153,.35);
+      --metric-shadow:rgba(52,211,153,.28);
+      background:linear-gradient(145deg, #ecfdf5, #f0fdfa) !important;
+    }
+    .metric-peso {
+      --metric-color:#0369a1;
+      --metric-glow:rgba(34,211,238,.34);
+      --metric-shadow:rgba(34,211,238,.28);
+      background:linear-gradient(145deg, #ecfeff, #eff6ff) !important;
+    }
+    .metric-favoravel {
+      --metric-color:#7e22ce;
+      --metric-glow:rgba(192,132,252,.34);
+      --metric-shadow:rgba(168,85,247,.25);
+      background:linear-gradient(145deg, #faf5ff, #fdf2f8) !important;
+    }
+    .metric-ativos {
+      --metric-color:#c2410c;
+      --metric-glow:rgba(251,146,60,.34);
+      --metric-shadow:rgba(249,115,22,.25);
+      background:linear-gradient(145deg, #fff7ed, #fefce8) !important;
+    }
+    .metric-flash { animation:metricFlash .62s var(--ease); }
+    @keyframes metricFlash {
+      0% { transform:translateY(4px); filter:brightness(1.35); }
+      100% { transform:translateY(0); filter:brightness(1); }
+    }
+
+    #dashPresencaBar { background:linear-gradient(90deg, #0ea5e9, #22d3ee, #22c55e); background-size:180% 100%; }
+    #dashQuorumBar { background:linear-gradient(90deg, #7c3aed, #ec4899, #facc15); background-size:180% 100%; }
+    #screen-dashboard .progress-fill,
+    #screen-dashboard .bar-fill {
+      position:relative;
+      overflow:hidden;
+      animation:progressColorFlow 4s linear infinite;
+    }
+    #screen-dashboard .progress-fill::after,
+    #screen-dashboard .bar-fill::after {
+      content:'';
+      position:absolute;
+      inset:0;
+      background:linear-gradient(110deg, transparent 15%, rgba(255,255,255,.65) 48%, transparent 78%);
+      transform:translateX(-140%);
+      animation:progressShimmer 2.2s ease-in-out infinite;
+    }
+    @keyframes progressColorFlow { to { background-position:180% 0; } }
+    @keyframes progressShimmer { 55%,100% { transform:translateX(145%); } }
+
+    #screen-dashboard .donut {
+      position:relative;
+      box-shadow:inset 0 0 0 18px rgba(255,255,255,.92), 0 14px 35px rgba(124,58,237,.18), 0 0 24px rgba(236,72,153,.12);
+      animation:donutReveal .75s var(--ease) both;
+    }
+    @keyframes donutReveal { from { opacity:0; transform:scale(.72) rotate(-28deg); } to { opacity:1; transform:scale(1) rotate(0); } }
+    #screen-dashboard .legend-item:nth-child(4n+1) { background:linear-gradient(100deg, rgba(34,211,238,.10), rgba(255,255,255,.76)); }
+    #screen-dashboard .legend-item:nth-child(4n+2) { background:linear-gradient(100deg, rgba(236,72,153,.10), rgba(255,255,255,.76)); }
+    #screen-dashboard .legend-item:nth-child(4n+3) { background:linear-gradient(100deg, rgba(250,204,21,.12), rgba(255,255,255,.76)); }
+    #screen-dashboard .legend-item:nth-child(4n+4) { background:linear-gradient(100deg, rgba(34,197,94,.10), rgba(255,255,255,.76)); }
+
+    #screen-dashboard .bar-item {
+      background:linear-gradient(110deg, rgba(255,247,237,.82), rgba(255,255,255,.78));
+      transition:transform .2s var(--ease), box-shadow .2s var(--ease);
+    }
+    #screen-dashboard .bar-item:hover { transform:translateX(4px); box-shadow:0 10px 24px rgba(249,115,22,.11); }
+    #screen-dashboard .alert-item {
+      position:relative;
+      padding-left:34px;
+      background:linear-gradient(110deg, rgba(254,242,242,.92), rgba(255,247,237,.80));
+      border-color:rgba(239,68,68,.13);
+    }
+    #screen-dashboard .alert-item::before {
+      content:'!';
+      position:absolute;
+      left:11px;
+      top:50%;
+      width:15px;
+      height:15px;
+      display:grid;
+      place-items:center;
+      transform:translateY(-50%);
+      border-radius:50%;
+      background:#ef4444;
+      color:#fff;
+      font-size:10px;
+      font-weight:1000;
+      box-shadow:0 0 14px rgba(239,68,68,.32);
+    }
+
+    .map-presenca-card { overflow:hidden; }
+    .map-summary-item {
+      position:relative;
+      overflow:hidden;
+      background:rgba(255,255,255,.80);
+      box-shadow:0 10px 24px rgba(15,37,74,.07);
+    }
+    .map-summary-item::after {
+      content:'';
+      position:absolute;
+      width:82px;
+      height:82px;
+      right:-30px;
+      bottom:-42px;
+      border-radius:50%;
+      opacity:.22;
+    }
+    .map-summary-item:nth-child(1) { border-color:rgba(34,197,94,.23); background:linear-gradient(135deg, #ecfdf5, #f0fdfa); }
+    .map-summary-item:nth-child(1)::after { background:#22c55e; }
+    .map-summary-item:nth-child(1) b { color:#047857; }
+    .map-summary-item:nth-child(2) { border-color:rgba(100,116,139,.22); background:linear-gradient(135deg, #f8fafc, #eef2f7); }
+    .map-summary-item:nth-child(2)::after { background:#64748b; }
+    .map-summary-item:nth-child(2) b { color:#475569; }
+    .map-summary-item:nth-child(3) { border-color:rgba(59,130,246,.22); background:linear-gradient(135deg, #eff6ff, #ecfeff); }
+    .map-summary-item:nth-child(3)::after { background:#22d3ee; }
+    .map-summary-item:nth-child(3) b { color:#0369a1; }
+    .map-summary-item b,
+    .map-summary-item span { position:relative; z-index:1; }
+    .map-shell {
+      background:
+        linear-gradient(rgba(34,211,238,.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34,211,238,.055) 1px, transparent 1px),
+        radial-gradient(circle at 50% 50%, rgba(34,211,238,.13), transparent 50%),
+        linear-gradient(145deg, #071426, #102544 58%, #16264a);
+      background-size:26px 26px, 26px 26px, auto, auto;
+      border-color:rgba(103,232,249,.24);
+      box-shadow:inset 0 0 45px rgba(34,211,238,.08), 0 18px 40px rgba(7,20,38,.18);
+    }
+    .map-shell::before {
+      content:'';
+      position:absolute;
+      inset:0;
+      background:radial-gradient(circle at 50% 50%, transparent 35%, rgba(3,10,25,.34) 100%);
+      pointer-events:none;
+      z-index:0;
+    }
+    .map-shell::after {
+      content:'';
+      position:absolute;
+      left:8%;
+      right:8%;
+      top:-12%;
+      height:15%;
+      background:linear-gradient(180deg, transparent, rgba(103,232,249,.24), transparent);
+      filter:blur(2px);
+      pointer-events:none;
+      animation:mapScan 5.6s linear infinite;
+      z-index:2;
+    }
+    @keyframes mapScan { to { transform:translateY(750%); } }
+    .map-canvas,
+    .map-source { position:relative; z-index:1; }
+    .map-source { color:rgba(226,232,240,.62); }
+    .map-municipio {
+      stroke:rgba(226,232,240,.88);
+      stroke-width:.72;
+      filter:drop-shadow(0 1px 1px rgba(3,10,25,.35));
+    }
+    .map-municipio:hover,
+    .map-municipio:focus { filter:drop-shadow(0 0 8px rgba(103,232,249,.82)); opacity:1; }
+    .map-municipio.selected {
+      stroke:#facc15;
+      stroke-width:2.35;
+      filter:drop-shadow(0 0 9px rgba(250,204,21,.9));
+      animation:mapSelectedPulse 1.25s ease-in-out infinite alternate;
+    }
+    @keyframes mapSelectedPulse { to { filter:drop-shadow(0 0 18px rgba(250,204,21,1)); } }
+    .map-label { fill:#f8fafc; stroke:rgba(7,20,38,.94); stroke-width:2.5px; }
+    .map-legend,
+    .map-selected,
+    .map-list-wrap {
+      background:linear-gradient(145deg, rgba(255,255,255,.92), rgba(244,248,255,.80));
+      box-shadow:0 10px 25px rgba(15,37,74,.08);
+    }
+    .map-selected { border-left:3px solid #22d3ee; }
+    .map-toolbar .chip {
+      border:0;
+      color:#fff;
+      background:linear-gradient(135deg, #0756b8, #7c3aed, #ec4899);
+      background-size:180% 100%;
+      box-shadow:0 9px 22px rgba(91,33,182,.20);
+      animation:toolbarGradient 5s linear infinite;
+    }
+    @keyframes toolbarGradient { to { background-position:180% 0; } }
+    .map-list-item { transition:transform .2s var(--ease), border-color .2s var(--ease), box-shadow .2s var(--ease); }
+    .map-list-item:hover { transform:translateX(4px); box-shadow:0 8px 20px rgba(34,211,238,.10); }
+    .map-swatch.presente,
+    .map-list-status.presente { background:#20d97a; box-shadow:0 0 10px rgba(32,217,122,.42); }
+    .map-swatch.ausente,
+    .map-list-status.ausente { background:#64748b; }
+    .map-swatch.sem-dado { background:#17243a; }
+
+    #screen-dashboard table thead {
+      background:linear-gradient(100deg, rgba(7,86,184,.95), rgba(124,58,237,.92), rgba(236,72,153,.88));
+      color:#fff;
+    }
+    #screen-dashboard table th { border-bottom:0 !important; text-transform:uppercase; font-size:10px; letter-spacing:.055em; }
+    #screen-dashboard table tbody tr { transition:background .18s ease, transform .18s ease; }
+    #screen-dashboard table tbody tr:hover { background:rgba(34,211,238,.08) !important; }
+
+    @media (prefers-reduced-motion: reduce) {
+      #screen-dashboard *,
+      #screen-dashboard *::before,
+      #screen-dashboard *::after {
+        animation-duration:.001ms !important;
+        animation-iteration-count:1 !important;
+        scroll-behavior:auto !important;
+      }
+    }
+
+    .summary-area { min-height: 300px; }
+
+    .msg {
+      position: fixed;
+      left: 18px;
+      right: 18px;
+      bottom: 16px;
+      z-index: 100;
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 13px 16px;
+      border-radius: 18px;
+      font-weight: 850;
+      box-shadow: 0 18px 42px rgba(15,23,42,.20);
+      transform: translateY(120%);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform .28s var(--ease), opacity .28s var(--ease);
+    }
+    .msg.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+    .msg.info { background:#eaf2ff; color:#1c3358; }
+    .msg.ok { background:#e9f8ef; color:#0e7a45; }
+    .msg.error { background:#ffe9e8; color:#9f1d1d; }
+    .msg-text { display:block; padding-right: 34px; }
+    .msg-close {
+      position:absolute;
+      top:50%;
+      right:10px;
+      width:30px;
+      height:30px;
+      margin:0;
+      padding:0;
+      border:0;
+      border-radius:50%;
+      background:rgba(255,255,255,.58);
+      color:currentColor;
+      font-size:20px;
+      line-height:1;
+      font-weight:900;
+      cursor:pointer;
+      transform:translateY(-50%);
+      box-shadow:none;
+    }
+    .msg-close:hover { background:rgba(255,255,255,.9); }
+    .msg-close:active { transform:translateY(-50%) scale(.94); }
+
+    .loading {
+      position: fixed;
+      inset: 0;
+      display:none;
+      place-items:center;
+      background: rgba(246,248,251,.42);
+      backdrop-filter: blur(6px);
+      z-index: 90;
+    }
+    .loading.active { display:grid; }
+    .loading-card {
+      padding: 16px 18px 16px 46px;
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: var(--shadow);
+      font-weight: 950;
+      position: relative;
+    }
+    .loading-card::before {
+      content:'';
+      position:absolute;
+      left: 18px;
+      top: 50%;
+      width: 16px;
+      height: 16px;
+      margin-top: -8px;
+      border-radius: 50%;
+      border: 3px solid #d8e3f2;
+      border-top-color: var(--blue);
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (hover: none) {
+      .card:hover, details:hover, .status-box:hover, .dash-card:hover, .dashboard-hero:hover, .result-item:hover {
+        transform: none;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .context-strip { grid-template-columns: 1fr 1fr; }
+      .screen.active { grid-template-columns: 1fr; }
+      .grid-2, .status-grid, .dash-card-grid { grid-template-columns: 1fr; }
+      .donut-row { grid-template-columns: 1fr; justify-items: center; }
+      .map-layout { grid-template-columns: 1fr; }
+      .map-summary { grid-template-columns: 1fr; }
+      .map-shell, .map-canvas { min-height:420px; }
+      .map-canvas svg { height:420px; }
+      .hero-result { font-size: 34px; }
+    }
+
+
+    /* Ajustes do Dashboard: tecnologia com paleta mais sóbria, mapa maior e zoom. */
+    .content { width:min(100%, 1560px); }
+
+    #screen-dashboard {
+      background:
+        radial-gradient(circle at 12% 6%, rgba(11,114,217,.10), transparent 34%),
+        radial-gradient(circle at 88% 18%, rgba(14,122,69,.08), transparent 30%),
+        linear-gradient(180deg, rgba(240,246,253,.72), rgba(247,249,252,.36));
+    }
+    #screen-dashboard::before,
+    #screen-dashboard::after { animation:none !important; opacity:.32; }
+
+    #screen-dashboard .tech-panel:not(.dashboard-hero) {
+      --accent:#0b72d9 !important;
+      background:linear-gradient(150deg, rgba(255,255,255,.94), rgba(245,249,254,.88));
+      border-color:rgba(11,114,217,.13);
+      box-shadow:0 16px 42px rgba(13,35,68,.10);
+    }
+    #screen-dashboard .tech-panel:not(.dashboard-hero)::after {
+      background:linear-gradient(90deg, #0756b8, #0b72d9, #0e7a45) !important;
+      opacity:.68;
+    }
+
+    .dashboard-hero {
+      background:
+        radial-gradient(circle at 88% 20%, rgba(52,211,153,.18), transparent 32%),
+        linear-gradient(135deg, #071a38, #0b3f78 56%, #075b72) !important;
+    }
+    .dashboard-hero::after { animation:none !important; opacity:.18 !important; }
+    .hero-spectrum i {
+      background:linear-gradient(180deg, #67e8f9, #22c55e) !important;
+      animation-duration:2.4s;
+      box-shadow:0 0 8px rgba(34,211,238,.30);
+    }
+
+    .metric-presentes,
+    .metric-peso,
+    .metric-favoravel,
+    .metric-ativos {
+      --metric-color:#0756b8;
+      --metric-glow:rgba(11,114,217,.22);
+      --metric-shadow:rgba(11,114,217,.18);
+      background:linear-gradient(145deg, #f8fbff, #eef5fc) !important;
+    }
+    .metric-presentes { --metric-color:#0e7a45; --metric-glow:rgba(14,122,69,.22); }
+    .metric-favoravel { --metric-color:#0f766e; --metric-glow:rgba(15,118,110,.20); }
+    .metric-ativos { --metric-color:#475569; --metric-glow:rgba(71,85,105,.18); }
+
+    #dashPresencaBar { background:linear-gradient(90deg, #0756b8, #0b72d9, #0e7a45) !important; }
+    #dashQuorumBar { background:linear-gradient(90deg, #0756b8, #0f766e, #f6c500) !important; }
+    #screen-dashboard .progress-fill,
+    #screen-dashboard .bar-fill { animation:none !important; }
+    #screen-dashboard .progress-fill::after,
+    #screen-dashboard .bar-fill::after { animation-duration:3.4s; opacity:.42; }
+
+    #screen-dashboard .legend-item:nth-child(n) {
+      background:linear-gradient(100deg, rgba(11,114,217,.055), rgba(255,255,255,.82));
+    }
+    #screen-dashboard .bar-item {
+      background:linear-gradient(110deg, rgba(241,247,253,.92), rgba(255,255,255,.86));
+    }
+    #screen-dashboard .alert-item {
+      background:linear-gradient(110deg, rgba(255,247,237,.88), rgba(255,255,255,.84));
+    }
+
+    .map-presenca-card { overflow:visible; }
+    .map-layout {
+      grid-template-columns:minmax(0, 1.9fr) minmax(285px, .62fr);
+      gap:18px;
+    }
+    .map-shell {
+      min-height:690px;
+      background:
+        linear-gradient(rgba(59,130,246,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59,130,246,.04) 1px, transparent 1px),
+        radial-gradient(circle at 50% 45%, rgba(14,122,69,.08), transparent 54%),
+        linear-gradient(145deg, #0a1729, #102945 62%, #14334a) !important;
+      background-size:32px 32px, 32px 32px, auto, auto;
+      border-color:rgba(96,165,250,.22);
+      box-shadow:inset 0 0 38px rgba(59,130,246,.06), 0 16px 36px rgba(7,20,38,.16);
+    }
+    .map-shell::after { display:none !important; content:none !important; animation:none !important; }
+    .map-canvas { min-height:650px; overflow:hidden; border-radius:16px; }
+    .map-canvas svg {
+      height:650px;
+      cursor:default;
+      user-select:none;
+      -webkit-user-select:none;
+    }
+    .map-canvas svg.zoomed { cursor:grab; }
+    .map-canvas svg.panning { cursor:grabbing; }
+    .map-municipio.selected {
+      stroke:#f6c500;
+      stroke-width:2.35;
+      filter:drop-shadow(0 0 8px rgba(246,197,0,.62));
+      animation:none !important;
+    }
+    .map-municipio:hover,
+    .map-municipio:focus { filter:drop-shadow(0 0 7px rgba(96,165,250,.62)); }
+
+    .map-toolbar { justify-content:flex-end; }
+    .map-toolbar .chip {
+      color:#0756b8;
+      background:#edf4fc !important;
+      border:1px solid rgba(7,86,184,.13);
+      box-shadow:none;
+      animation:none !important;
+    }
+    .map-toolbar .chip:hover { background:#e3effb !important; }
+    .map-zoom-controls {
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      min-height:34px;
+      padding:3px;
+      border:1px solid rgba(7,86,184,.14);
+      border-radius:12px;
+      background:#fff;
+      box-shadow:0 6px 16px rgba(15,37,74,.06);
+    }
+    .map-zoom-btn,
+    .map-zoom-reset {
+      width:auto;
+      min-width:30px;
+      min-height:28px;
+      margin:0;
+      padding:4px 9px;
+      border:0;
+      border-radius:9px;
+      background:#edf4fc;
+      color:#0756b8;
+      font-weight:950;
+      cursor:pointer;
+    }
+    .map-zoom-btn { font-size:18px; line-height:1; }
+    .map-zoom-reset { font-size:11px; }
+    .map-zoom-btn:hover,
+    .map-zoom-reset:hover { background:#dceafb; }
+    .map-zoom-btn:disabled { opacity:.38; cursor:not-allowed; }
+    .map-zoom-level {
+      min-width:48px;
+      text-align:center;
+      color:#334155;
+      font-family:"SFMono-Regular", Consolas, monospace;
+      font-size:11px;
+      font-weight:900;
+    }
+
+    .map-selected {
+      border-left:3px solid #0756b8;
+      background:#fff;
+    }
+    .map-selected-header {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding-bottom:10px;
+      margin-bottom:9px;
+      border-bottom:1px solid rgba(15,23,42,.08);
+    }
+    .map-selected-header strong { margin:0; }
+    .map-selected-dot { width:11px; height:11px; border-radius:50%; border:1px solid rgba(15,23,42,.14); }
+    .map-selected-dot.presente { background:#20b968; }
+    .map-selected-dot.ausente { background:#94a3b8; }
+    .map-selected-dot.sem-dado { background:#dbe2ea; }
+    .map-selected-grid {
+      display:grid;
+      grid-template-columns:minmax(76px, auto) minmax(0, 1fr);
+      gap:8px 10px;
+      align-items:start;
+    }
+    .map-selected-label {
+      color:#64748b;
+      font-size:10px;
+      font-weight:900;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+    .map-selected-value {
+      color:#24344d;
+      font-size:12px;
+      line-height:1.35;
+      overflow-wrap:anywhere;
+    }
+    .map-selected-value.representante { color:#0756b8; }
+    .map-list-item.selected {
+      background:#e8f2fc;
+      border-color:rgba(7,86,184,.28);
+      box-shadow:inset 3px 0 0 #0756b8;
+    }
+
+    .map-summary-item:nth-child(1) { background:linear-gradient(135deg, #edf9f3, #f7fcf9); }
+    .map-summary-item:nth-child(2) { background:linear-gradient(135deg, #f4f6f8, #fafbfc); }
+    .map-summary-item:nth-child(3) { background:linear-gradient(135deg, #edf4fc, #f8fbff); }
+
+    #screen-dashboard table thead {
+      background:linear-gradient(100deg, #0b3f78, #0756b8) !important;
+    }
+
+    @media (max-width:1100px) {
+      .map-layout { grid-template-columns:1fr; }
+      .map-side { grid-template-columns:repeat(2, minmax(0,1fr)); }
+      .map-list-wrap { grid-column:1 / -1; }
+    }
+
+    @media (max-width:700px) {
+      .map-shell { min-height:560px; }
+      .map-canvas { min-height:530px; }
+      .map-canvas svg { height:530px; }
+      .map-side { grid-template-columns:1fr; }
+      .map-list-wrap { grid-column:auto; }
+      .map-toolbar { justify-content:flex-start; }
+    }
+
+</style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="header">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true"></div>
+          <div class="brand-title">
+            <strong>Mesa da Reunião</strong>
+            <span>Controle ao vivo dos Conselhos Metropolitanos</span>
+          </div>
+        </div>
+        <div class="utility">
+          <div class="size-control" aria-label="Tamanho do painel">
+            <button type="button" class="size-btn" data-size="compacto" onclick="ajustarPainel('compacto')" title="Compacto">−</button>
+            <button type="button" class="size-btn" data-size="normal" onclick="ajustarPainel('normal')" title="Normal">•</button>
+            <button type="button" class="size-btn" data-size="grande" onclick="ajustarPainel('grande')" title="Grande">+</button>
+            <button type="button" class="size-btn" data-size="maximo" onclick="ajustarPainel('maximo')" title="Cheia">□</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="context-strip">
+        <div class="pill"><span>Conselho</span><b id="statConselho">-</b></div>
+        <div class="pill"><span>Pauta</span><b id="statPauta">-</b></div>
+        <div id="zoomChip" class="live-badge off">Off</div>
+        <div class="pill"><span>Ativos</span><b id="statAtivos">0</b></div>
+        <span id="statZoom" class="hidden">-</span>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="preparar" onclick="goTab('preparar')">Preparar</button>
+        <button class="tab" data-tab="presenca" onclick="goTab('presenca')">Presença</button>
+        <button class="tab" data-tab="votacao" onclick="goTab('votacao')">Votar</button>
+        <button class="tab" data-tab="dashboard" onclick="goTab('dashboard')">Painel</button>
+        <button class="tab" data-tab="ata" onclick="goTab('ata')">Ata</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <section id="screen-preparar" class="screen active single">
+        <div class="card wide">
+          <div class="card-title"><span><span class="step">1</span>Preparar reunião</span><span id="ctxChip" class="chip warn">Salvar</span></div>
+          <div class="grid-2">
+            <div>
+              <label>Conselho</label>
+              <select id="conselho" onchange="marcarContextoPendente()"></select>
+            </div>
+            <div>
+              <label>Pauta</label>
+              <select id="pauta" onchange="onPautaChange()"></select>
+            </div>
+          </div>
+          <div id="candidatoBox">
+            <label>Candidato</label>
+            <input id="candidato" value="Clayzer" oninput="marcarContextoPendente(); atualizarVotos()">
+          </div>
+          <button class="btn-primary" onclick="salvarContexto()">Salvar contexto</button>
+        </div>
+      </section>
+
+      <section id="screen-presenca" class="screen">
+        <div class="card">
+          <div class="card-title"><span><span class="step">2</span>Zoom ao vivo</span></div>
+          <label>Meeting ID</label>
+          <input id="meetingId" placeholder="Ex.: 582 012 6573">
+          <button class="btn-dark" onclick="ativarAoVivo()">Ativar presença</button>
+          <div class="btn-row">
+            <button class="btn-secondary" onclick="verStatusAoVivo()">Status</button>
+            <button class="btn-danger" onclick="resetarAoVivo()">Resetar</button>
+          </div>
+          <button class="btn-danger" onclick="desativarAoVivo()">Desativar</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>Leitura</span></div>
+          <div class="status-grid">
+            <div class="status-box"><b id="liveConselho">-</b><span>Conselho</span></div>
+            <div class="status-box"><b id="liveMeeting">-</b><span>Meeting</span></div>
+            <div class="status-box"><b id="liveAtivos">0</b><span>Ativos</span></div>
+            <div class="status-box"><b id="livePendencias">0</b><span>Pendências</span></div>
+          </div>
+        </div>
+
+        <details class="wide">
+          <summary>Plano B: lista manual</summary>
+          <label>Participantes</label>
+          <textarea id="participantesZoom" placeholder="Um nome por linha"></textarea>
+          <div class="btn-row">
+            <button class="btn-secondary" onclick="importarPresencaZoom()">Importar</button>
+            <button class="btn-secondary" onclick="verUltimaImportacaoZoom()">Última lista</button>
+          </div>
+        </details>
+
+        <details class="wide">
+          <summary>Suporte técnico</summary>
+          <div class="btn-row">
+            <button class="btn-secondary" onclick="abrirAliases()">ALIASES_ZOOM</button>
+            <button class="btn-secondary" onclick="abrirDebugMatch()">DEBUG_MATCH</button>
+          </div>
+        </details>
+      </section>
+
+      <section id="screen-votacao" class="screen">
+        <div class="card">
+          <div class="card-title"><span><span class="step">3</span>Votação</span></div>
+          <button class="btn-primary" onclick="abrirVotacao()">Abrir votação</button>
+          <button class="btn-ok" onclick="todosFavoraveis()">Todos presentes favoráveis</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><span>Voto individual</span><span id="selChip" class="chip">Nada selecionado</span></div>
+          <label>Buscar membro ou município</label>
+          <input id="busca" placeholder="Digite e pressione Enter" oninput="selecionado=null; atualizarSelecionadoUI()" onkeydown="if(event.key==='Enter') buscar()">
+          <button class="btn-secondary" onclick="buscar()">Buscar</button>
+          <div id="resultados" class="result-list hidden"></div>
+
+          <label>Enviar voto</label>
+          <div id="voteButtons" class="vote-grid"></div>
+
+          <label>Observação</label>
+          <textarea id="observacao" placeholder="Opcional"></textarea>
+        </div>
+      </section>
+
+      <section id="screen-dashboard" class="screen">
+        <div class="card dashboard-hero tech-panel wide">
+          <div class="hero-topline">
+            <div class="hero-label">Resultado atual</div>
+            <div class="hero-live"><i></i><span>Dados sincronizados</span><b id="dashAtualizado">--:--:--</b></div>
+          </div>
+          <div id="dashResultado" class="hero-result">-</div>
+          <div id="dashSub" class="hero-sub">Atualize para ler os dados oficiais da planilha.</div>
+          <div class="hero-spectrum" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+
+        <div class="card tech-panel dashboard-indicators wide">
+          <div class="card-title">
+            <span>Indicadores</span>
+            <button class="chip" style="width:auto;margin:0;padding:7px 11px" onclick="carregarDashboard(true)">Atualizar</button>
+          </div>
+          <div class="dash-card-grid">
+            <div class="dash-card metric-presentes"><b id="dashPresentes">0</b><span>Presentes</span></div>
+            <div class="dash-card metric-peso"><b id="dashPesoPresente">0</b><span>Peso presente</span></div>
+            <div class="dash-card metric-favoravel"><b id="dashFavoravel">0</b><span>Favoráveis</span></div>
+            <div class="dash-card metric-ativos"><b id="dashAtivos">0</b><span>Zoom ativos</span></div>
+          </div>
+        </div>
+
+        <div class="card tech-panel dash-quorum-card">
+          <div class="card-title"><span>Quórum</span></div>
+          <div class="progress-wrap">
+            <div class="progress-top"><span>Presença ponderada</span><span id="dashPresencaPerc">0%</span></div>
+            <div class="progress-bar"><div id="dashPresencaBar" class="progress-fill"></div></div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-top"><span>Meta da aprovação</span><span id="dashQuorumTxt">-</span></div>
+            <div class="progress-bar"><div id="dashQuorumBar" class="progress-fill"></div></div>
+          </div>
+        </div>
+
+        <div class="card tech-panel dash-votes-card">
+          <div class="card-title"><span>Votos</span></div>
+          <div class="donut-row">
+            <div id="dashDonut" class="donut"></div>
+            <div id="dashLegenda" class="legend-list"></div>
+          </div>
+        </div>
+
+        <div class="card tech-panel dash-segmentos-card">
+          <div class="card-title"><span>Segmentos</span></div>
+          <div id="dashSegmentos" class="bar-list"></div>
+        </div>
+
+        <div class="card tech-panel dash-pendencias-card">
+          <div class="card-title"><span>Pendências</span></div>
+          <div id="dashPendencias" class="alert-list"></div>
+        </div>
+
+
+
+        <div class="card tech-panel wide map-presenca-card">
+          <div class="card-title">
+            <span>Presença dos municípios</span>
+            <div class="map-toolbar">
+              <div class="map-zoom-controls" aria-label="Controles de zoom do mapa">
+                <button id="mapaZoomMenos" type="button" class="map-zoom-btn" onclick="ajustarZoomMapa(-1)" title="Diminuir zoom" aria-label="Diminuir zoom">−</button>
+                <span id="mapaZoomNivel" class="map-zoom-level">100%</span>
+                <button id="mapaZoomMais" type="button" class="map-zoom-btn" onclick="ajustarZoomMapa(1)" title="Aumentar zoom" aria-label="Aumentar zoom">+</button>
+                <button type="button" class="map-zoom-reset" onclick="resetarZoomMapa()">Redefinir</button>
+              </div>
+              <button id="mapaNomesBtn" type="button" class="chip" onclick="alternarNomesMapa()">Mostrar nomes</button>
+              <button type="button" class="chip" onclick="renderMapaPresenca(mapaPresencasAtuais, true)">Recarregar mapa</button>
+            </div>
+          </div>
+
+          <div class="map-summary">
+            <div class="map-summary-item"><span>Presentes</span><b id="mapaPresentes">0</b></div>
+            <div class="map-summary-item"><span>Ausentes</span><b id="mapaAusentes">0</b></div>
+            <div class="map-summary-item"><span>Municípios no conselho</span><b id="mapaTotalConselho">0</b></div>
+          </div>
+
+          <div class="map-layout">
+            <div class="map-shell">
+              <div id="mapaTocantins" class="map-canvas">
+                <div class="map-empty">O mapa será carregado com os dados de presença da reunião.</div>
+              </div>
+              <div class="map-source">Divisas municipais do Tocantins. Clique para consultar. Use os botões ou a roda do mouse para ampliar; arraste para mover o mapa.</div>
+            </div>
+
+            <div class="map-side">
+              <div class="map-legend">
+                <div class="map-legend-item"><span class="map-legend-label"><i class="map-swatch presente"></i>Presente</span><b id="mapaLegendaPresentes">0</b></div>
+                <div class="map-legend-item"><span class="map-legend-label"><i class="map-swatch ausente"></i>Ausente</span><b id="mapaLegendaAusentes">0</b></div>
+                <div class="map-legend-item"><span class="map-legend-label"><i class="map-swatch sem-dado"></i>Fora do conselho/sem dado</span><b id="mapaLegendaSemDado">0</b></div>
+              </div>
+
+              <div id="mapaMunicipioSelecionado" class="map-selected">
+                <strong>Selecione um município</strong>
+                <span>O nome, a presença e o representante aparecerão aqui.</span>
+              </div>
+
+              <div class="map-list-wrap">
+                <div class="map-list-title">Municípios desta reunião</div>
+                <div id="mapaListaMunicipios" class="map-list">
+                  <div class="mini">Aguardando dados.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card tech-panel dash-resumo-card wide">
+          <div class="card-title">
+            <span>Resumo oficial</span>
+            <span id="dashFonte" class="chip" style="width:auto;margin:0;padding:7px 11px">-</span>
+          </div>
+          <div id="dashResumoOficial"></div>
+        </div>
+
+        <div class="card tech-panel dash-ultimos-card wide">
+          <div class="card-title">
+            <span>Últimos votos</span>
+            <button class="chip" style="width:auto;margin:0;padding:7px 11px" onclick="atualizarDashboardPlanilha()">Gerar aba</button>
+          </div>
+          <div id="dashUltimos"></div>
+        </div>
+      </section>
+
+      <section id="screen-ata" class="screen single">
+        <div class="card">
+          <div class="card-title"><span><span class="step">4</span>Ata</span></div>
+          <button class="btn-primary" onclick="conferir()">Conferir resultado</button>
+          <button class="btn-secondary" onclick="copiarAta()">Copiar texto</button>
+          <textarea id="textoAta" class="summary-area" readonly placeholder="O resultado aparecerá aqui."></textarea>
+        </div>
+      </section>
+    </div>
+
+    <div id="mensagem" class="msg info show" role="status" aria-live="polite">
+      <span id="mensagemTexto" class="msg-text">Carregando...</span>
+      <button type="button" class="msg-close" onclick="fecharMensagem()" aria-label="Fechar mensagem" title="Fechar">&times;</button>
+    </div>
+    <div id="loading" class="loading"><div class="loading-card">Processando...</div></div>
+  </div>
+
+<script>
+  let estado = null;
+  let selecionado = null;
+  let contextoSalvo = false;
+  const CORES_GRAFICO = ['#003f88', '#f6c500', '#15803d', '#b91c1c', '#6b7280', '#7c3aed', '#0f766e'];
+  const CORES_VOTOS = {
+    sim: '#168a45',
+    favoravel: '#168a45',
+    favoraveis: '#168a45',
+    nao: '#c62828',
+    abstencao: '#f6c500',
+    impedido: '#7c3aed',
+    ausente: '#64748b',
+    branco: '#cbd5e1'
+  };
+  const MAPA_TO_URLS = [
+    'https://cdn.jsdelivr.net/gh/tbrugz/geodata-br@master/geojson/geojs-17-mun.json',
+    'https://raw.githubusercontent.com/tbrugz/geodata-br/master/geojson/geojs-17-mun.json'
+  ];
+  const MAPA_CORES = { presente: '#20d97a', ausente: '#64748b', semDado: '#17243a' };
+  let mapaGeoJsonCache = null;
+  let mapaPresencasAtuais = [];
+  let mapaNomesVisiveis = false;
+  let mapaMunicipioSelecionadoNorm = '';
+  let mapaSvgAtual = null;
+  let mapaIgnorarCliqueAte = 0;
+  const MAPA_VIEWBOX_BASE = { width: 680, height: 900 };
+  const mapaViewport = { x: 0, y: 0, width: 680, height: 900, zoom: 1 };
+
+
+  const TAMANHOS_PAINEL = {
+    compacto: { width: 760, height: 680, label: 'Compacto' },
+    normal: { width: 1050, height: 820, label: 'Normal' },
+    grande: { width: 1320, height: 920, label: 'Grande' },
+    maximo: { width: 1500, height: 1000, label: 'Cheia' }
+  };
+
+  function ajustarPainel(tipo) {
+    const cfg = TAMANHOS_PAINEL[tipo] || TAMANHOS_PAINEL.normal;
+    try {
+      google.script.host.setWidth(cfg.width);
+      google.script.host.setHeight(cfg.height);
+      localStorage.setItem('mesaPainelTamanho', tipo);
+      marcarBotaoTamanho(tipo);
+    } catch (e) {
+      setMsg('Abra em REUNIÃO > Abrir painel grande para redimensionar.', 'info');
+    }
+  }
+
+  function marcarBotaoTamanho(tipo) {
+    document.querySelectorAll('.size-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.size === tipo);
+    });
+  }
+
+  function aplicarTamanhoSalvo() {
+    const tipo = localStorage.getItem('mesaPainelTamanho') || 'normal';
+    marcarBotaoTamanho(tipo);
+    setTimeout(function() {
+      try {
+        const cfg = TAMANHOS_PAINEL[tipo] || TAMANHOS_PAINEL.normal;
+        google.script.host.setWidth(cfg.width);
+        google.script.host.setHeight(cfg.height);
+      } catch (e) {}
+    }, 120);
+  }
+
+  function el(id) { return document.getElementById(id); }
+
+  function payload() {
+    return {
+      conselho: el('conselho').value,
+      pauta: el('pauta').value,
+      candidato: el('candidato').value
+    };
+  }
+
+  function payloadZoom() {
+    const p = payload();
+    p.meetingId = el('meetingId').value;
+    return p;
+  }
+
+  function setMsg(texto, tipo) {
+    const msg = el('mensagem');
+    const msgTexto = el('mensagemTexto');
+    msgTexto.textContent = texto || '';
+    msg.className = 'msg ' + (tipo || 'info') + (texto ? ' show' : '');
+  }
+
+  function fecharMensagem() {
+    const msg = el('mensagem');
+    msg.classList.remove('show');
+  }
+
+  function busy(on, texto) {
+    el('loading').classList.toggle('active', !!on);
+    if (texto) el('loading').querySelector('.loading-card').textContent = texto;
+    document.querySelectorAll('button').forEach(b => b.disabled = !!on);
+  }
+
+  function run(fnName, args, ok, textoBusy) {
+    busy(true, textoBusy || 'Processando...');
+    google.script.run
+      .withSuccessHandler(function(res) {
+        busy(false);
+        if (ok) ok(res);
+      })
+      .withFailureHandler(function(e) {
+        busy(false);
+        err(e);
+      })[fnName].apply(null, args || []);
+  }
+
+  function goTab(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    el('screen-' + name).classList.add('active');
+    if (name === 'presenca') verStatusAoVivo(false);
+    if (name === 'dashboard') carregarDashboard(false);
+    if (name === 'ata') conferir(false);
+  }
+
+  function carregar() {
+    run('obterEstadoInicial', [], function(res) {
+      estado = res || {};
+      preencherSelect('conselho', estado.conselhos || [], estado.contexto && estado.contexto.conselho);
+      preencherSelect('pauta', estado.pautas || [], estado.contexto && estado.contexto.pauta);
+      el('candidato').value = (estado.contexto && estado.contexto.candidato) || 'Clayzer';
+      atualizarVotos();
+      aplicarZoomStatus(estado.zoom || {});
+      contextoSalvo = true;
+      atualizarContextoUI();
+      setMsg('Pronto.', 'ok');
+    }, 'Carregando...');
+  }
+
+  function preencherSelect(id, opcoes, atual) {
+    const s = el(id);
+    s.innerHTML = '';
+    opcoes.forEach(function(o) {
+      const opt = document.createElement('option');
+      opt.value = o;
+      opt.textContent = o;
+      if (o === atual) opt.selected = true;
+      s.appendChild(opt);
+    });
+  }
+
+  function onPautaChange() { atualizarVotos(); marcarContextoPendente(); }
+
+  function atualizarVotos() {
+    if (!estado) return;
+    const pauta = el('pauta').value;
+    const votos = pauta === 'Vice-Presidência' ? estado.votosVice : estado.votosReg;
+    renderVoteButtons(votos || []);
+    el('candidatoBox').classList.toggle('hidden', pauta !== 'Vice-Presidência');
+    el('statPauta').textContent = pauta ? pauta.replace('Regimento Interno', 'Regimento').replace('Vice-Presidência', 'Vice') : '-';
+  }
+
+  function renderVoteButtons(votos) {
+    const box = el('voteButtons');
+    if (!box) return;
+    box.innerHTML = '';
+    votos.forEach(function(voto) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = labelVoto(voto);
+      btn.className = classeVoto(voto);
+      if (voto === (el('candidato') && el('candidato').value)) btn.className = 'vote-candidate wide-vote';
+      btn.onclick = function() { votarRapido(voto); };
+      box.appendChild(btn);
+    });
+  }
+
+  function labelVoto(voto) {
+    const v = String(voto || '').trim();
+    if (v === 'Sim') return 'SIM';
+    if (v === 'Não') return 'NÃO';
+    if (v === 'Abstenção') return 'ABSTENÇÃO';
+    if (v === 'Impedido') return 'IMPEDIDO';
+    if (v === 'Ausente') return 'AUSENTE';
+    if (v === 'Branco') return 'BRANCO';
+    return v.toUpperCase();
+  }
+
+  function classeVoto(voto) {
+    const v = String(voto || '').toLowerCase();
+    if (v === 'sim') return 'vote-primary';
+    if (v === 'não' || v === 'nao') return 'vote-no';
+    if (v === 'abstenção' || v === 'abstencao' || v === 'branco') return 'vote-neutral';
+    if (v === 'impedido' || v === 'ausente') return 'vote-muted';
+    return 'vote-candidate wide-vote';
+  }
+
+  function marcarContextoPendente() { contextoSalvo = false; atualizarContextoUI(); }
+
+  function atualizarContextoUI() {
+    el('ctxChip').textContent = contextoSalvo ? 'Salvo' : 'Salvar';
+    el('ctxChip').className = contextoSalvo ? 'chip ok' : 'chip warn';
+    el('statConselho').textContent = el('conselho').value || '-';
+    el('statPauta').textContent = (el('pauta').value || '-').replace('Regimento Interno', 'Regimento').replace('Vice-Presidência', 'Vice');
+  }
+
+  function salvarContexto(callback) {
+    run('salvarContexto', [payload()], function(res) {
+      contextoSalvo = true;
+      atualizarContextoUI();
+      setMsg((res && res.mensagem) || 'Contexto salvo.', 'ok');
+      if (callback) callback(res);
+    }, 'Salvando...');
+  }
+
+  function ativarAoVivo() {
+    run('ativarPresencaAoVivo', [payloadZoom()], function(res) {
+      contextoSalvo = true;
+      atualizarContextoUI();
+      setMsg((res && res.mensagem) || 'Presença ativada.', 'ok');
+      verStatusAoVivo(false);
+    }, 'Ativando presença...');
+  }
+
+  function verStatusAoVivo(mostrarMensagem) {
+    run('obterStatusPresencaAoVivo', [], function(res) {
+      aplicarZoomStatus(res || {});
+      if (mostrarMensagem !== false) setMsg(formatarStatus(res), 'info');
+    }, 'Atualizando status...');
+  }
+
+  function aplicarZoomStatus(res) {
+    const ativa = !!(res && res.reuniaoAtiva && res.reuniaoAtiva.meetingId);
+    const meeting = ativa ? res.reuniaoAtiva.meetingId : '';
+    const conselho = ativa ? res.reuniaoAtiva.conselho : '-';
+    const totalAtivos = res && typeof res.totalAtivos !== 'undefined' ? res.totalAtivos : 0;
+    const pendencias = res && res.pendencias ? res.pendencias.length : 0;
+
+    el('zoomChip').textContent = ativa ? 'Ao vivo' : 'Off';
+    el('zoomChip').className = ativa ? 'live-badge on' : 'live-badge off';
+    el('statZoom').textContent = ativa ? 'Ativo' : 'Off';
+    el('statAtivos').textContent = totalAtivos;
+    el('liveConselho').textContent = conselho;
+    el('liveMeeting').textContent = meeting || '-';
+    el('liveAtivos').textContent = totalAtivos;
+    el('livePendencias').textContent = pendencias;
+    if (meeting) el('meetingId').value = meeting;
+  }
+
+  function formatarStatus(res) {
+    if (!res || !res.reuniaoAtiva) return 'Presença ao vivo desativada.';
+    let txt = 'Conselho: ' + res.reuniaoAtiva.conselho + '\n';
+    txt += 'Meeting ID: ' + res.reuniaoAtiva.meetingId + '\n';
+    txt += 'Ativos: ' + (res.totalAtivos || 0) + '\n';
+    txt += 'Pendências: ' + ((res.pendencias && res.pendencias.length) || 0);
+    return txt;
+  }
+
+  function resetarAoVivo() {
+    if (!confirm('Resetar presença ao vivo?')) return;
+    run('resetarPresencaAoVivo', [], function(res) {
+      setMsg((res && res.mensagem) || 'Presença resetada.', 'ok');
+      verStatusAoVivo(false);
+    }, 'Resetando...');
+  }
+
+  function desativarAoVivo() {
+    if (!confirm('Desativar presença ao vivo?')) return;
+    run('desativarPresencaAoVivo', [], function(res) {
+      setMsg((res && res.mensagem) || 'Presença desativada.', 'ok');
+      verStatusAoVivo(false);
+    }, 'Desativando...');
+  }
+
+  function importarPresencaZoom() {
+    const p = payload();
+    p.listaZoom = el('participantesZoom').value;
+    run('importarPresencaZoomColada', [p], function(res) {
+      setMsg((res && res.mensagem) || 'Lista importada.', 'ok');
+      verStatusAoVivo(false);
+    }, 'Importando lista...');
+  }
+
+  function verUltimaImportacaoZoom() {
+    run('obterUltimaImportacaoZoom', [], function(res) {
+      if (!res || !res.ok) return setMsg((res && res.mensagem) || 'Sem importação.', 'info');
+      let txt = 'Última atualização\n';
+      txt += 'Conselho: ' + (res.conselho || '-') + '\n';
+      txt += 'Pendências: ' + ((res.pendencias && res.pendencias.length) || 0) + '\n';
+      if (res.detalhesAbas) {
+        res.detalhesAbas.forEach(function(d) {
+          txt += d.aba + ': ' + d.presentes + ' presentes\n';
+        });
+      }
+      setMsg(txt, 'info');
+    }, 'Consultando...');
+  }
+
+  function abrirVotacao() {
+    run('abrirVotacao', [payload()], function(res) {
+      setMsg((res && res.mensagem) || 'Votação aberta.', 'ok');
+      carregarDashboard(false);
+      goTab('votacao');
+    }, 'Abrindo votação...');
+  }
+
+  function todosFavoraveis() {
+    if (!confirm('Lançar voto favorável para todos os presentes?')) return;
+    run('todosFavoraveis', [payload()], function(res) {
+      setMsg((res && res.mensagem) || 'Votos lançados.', 'ok');
+      if (res && res.resumo && res.resumo.textoAta) el('textoAta').value = res.resumo.textoAta;
+      carregarDashboard(false);
+    }, 'Lançando votos...');
+  }
+
+  function buscar() {
+    selecionado = null;
+    atualizarSelecionadoUI();
+    const p = payload();
+    p.busca = el('busca').value;
+    if (!p.busca) return setMsg('Digite um nome ou município.', 'info');
+    run('buscarRegistros', [p], function(res) {
+      renderResultados((res && res.resultados) || []);
+    }, 'Buscando...');
+  }
+
+  function renderResultados(lista) {
+    const box = el('resultados');
+    box.innerHTML = '';
+    box.classList.remove('hidden');
+    if (!lista.length) {
+      box.innerHTML = '<div class="result-item"><b>Nenhum resultado</b></div>';
+      return;
+    }
+    lista.forEach(function(r) {
+      const item = document.createElement('div');
+      item.className = 'result-item';
+      item.innerHTML = '<b>' + esc(r.ente || r.representante) + '</b>' +
+        '<div class="mini">' + esc(r.representante || '') + '</div>' +
+        '<div class="mini">Presença: ' + esc(r.presenca || '-') + ' | Voto: ' + esc(r.votoAtual || '-') + '</div>';
+      item.onclick = function() {
+        document.querySelectorAll('.result-item').forEach(i => i.classList.remove('selected'));
+        item.classList.add('selected');
+        selecionado = r;
+        atualizarSelecionadoUI();
+      };
+      box.appendChild(item);
+    });
+  }
+
+  function atualizarSelecionadoUI() {
+    el('selChip').textContent = selecionado ? 'Selecionado' : 'Nada selecionado';
+    el('selChip').className = selecionado ? 'chip ok' : 'chip';
+  }
+
+  function votarRapido(voto) {
+    if (selecionado) return enviarVotoSelecionado(voto);
+
+    const termo = (el('busca').value || '').trim();
+    if (!termo) return setMsg('Digite o nome ou município antes de votar.', 'info');
+
+    const p = payload();
+    p.busca = termo;
+
+    run('buscarRegistros', [p], function(res) {
+      const lista = (res && res.resultados) || [];
+      renderResultados(lista);
+
+      if (lista.length === 1) {
+        selecionado = lista[0];
+        atualizarSelecionadoUI();
+        enviarVotoSelecionado(voto);
+        return;
+      }
+
+      if (lista.length > 1) {
+        setMsg('Encontrei mais de um resultado. Clique no correto e aperte o voto.', 'info');
+        return;
+      }
+
+      setMsg('Nenhum registro encontrado para: ' + termo, 'info');
+    }, 'Buscando registro...');
+  }
+
+  function enviarVotoSelecionado(voto) {
+    if (!selecionado) return setMsg('Selecione um registro.', 'info');
+
+    const p = payload();
+    p.row = selecionado.row;
+    p.voto = voto;
+    p.observacao = el('observacao').value;
+
+    run('registrarExcecao', [p], function(res) {
+      setMsg((res && res.mensagem) || 'Voto registrado: ' + voto + '.', 'ok');
+      if (res && res.resumo && res.resumo.textoAta) el('textoAta').value = res.resumo.textoAta;
+      carregarDashboard(false);
+      buscar();
+    }, 'Registrando voto...');
+  }
+
+  function conferir(showMsg) {
+    run('obterResumo', [payload()], function(res) {
+      let txt = '';
+      if (res && res.resumo && res.resumo.linhas) {
+        res.resumo.linhas.forEach(function(l) {
+          txt += l.indicador + ': ' + l.resultado + '\n';
+        });
+      }
+      txt += '\nTexto para ata:\n' + ((res && res.textoAta) || '');
+      el('textoAta').value = txt.trim();
+      carregarDashboard(false);
+      if (showMsg !== false) setMsg('Resultado atualizado.', 'ok');
+    }, 'Conferindo...');
+  }
+
+  function copiarAta() {
+    const txt = el('textoAta');
+    txt.focus();
+    txt.select();
+    try {
+      document.execCommand('copy');
+      setMsg('Texto copiado.', 'ok');
+    } catch (e) {
+      setMsg('Selecione o texto e copie manualmente.', 'info');
+    }
+  }
+
+  function carregarDashboard(showMsg) {
+    busy(true, 'Atualizando dashboard...');
+    google.script.run
+      .withSuccessHandler(function(res) {
+        busy(false);
+        renderDashboard(res || {});
+        if (showMsg) setMsg('Dashboard atualizado.', 'ok');
+      })
+      .withFailureHandler(function() {
+        // Mantém compatibilidade caso o patch do Code.gs ainda não tenha sido instalado.
+        run('obterDashboardReuniao', [payload()], function(res) {
+          const data = res || {};
+          data.mapaAviso = 'Instale o arquivo Patch_Code_gs_mapa_presenca.gs para vincular as presenças ao mapa.';
+          renderDashboard(data);
+          if (showMsg) setMsg('Dashboard atualizado. O mapa ainda precisa do patch do Code.gs.', 'info');
+        }, 'Atualizando dashboard...');
+      })
+      .obterDashboardReuniaoComMapa(payload());
+  }
+
+  function atualizarDashboardPlanilha() {
+    run('atualizarDashboardPlanilha', [payload()], function(res) {
+      setMsg((res && res.mensagem) || 'Dashboard da planilha atualizado.', 'ok');
+    }, 'Gerando aba Dashboard...');
+  }
+
+  function renderDashboard(d) {
+    const totais = d.totais || {};
+    const quorum = d.quorum || {};
+    const zoom = d.zoom || {};
+    const ctx = d.contexto || payload();
+
+    el('dashResultado').textContent = d.resultado || 'Sem resultado';
+    el('dashSub').textContent = (ctx.conselho || '-') + ' · ' + (ctx.pauta || '-') + ' · ' + (d.aba || '-');
+    animarNumeroDashboard('dashPresentes', totais.presentes);
+    animarNumeroDashboard('dashPesoPresente', totais.pesoPresente);
+    animarNumeroDashboard('dashFavoravel', totais.pesoFavoravel || quorum.baseAprovacao);
+    animarNumeroDashboard('dashAtivos', zoom.totalAtivos);
+    atualizarRelogioDashboard();
+
+    const percPresenca = Math.max(0, Math.min(100, Number(quorum.percentualPresenca || 0)));
+    const percAprovacao = Math.max(0, Math.min(100, Number(quorum.percentualAprovacao || 0)));
+    el('dashPresencaPerc').textContent = percPresenca + '%';
+    el('dashPresencaBar').style.width = percPresenca + '%';
+    el('dashQuorumTxt').textContent = quorum.exigido ? n(quorum.baseAprovacao) + ' / ' + n(quorum.exigido) : 'Sem meta';
+    el('dashQuorumBar').style.width = percAprovacao + '%';
+
+    el('dashFonte').textContent = d.aba || '-';
+    renderDonut(d.votosSerie || []);
+    renderSegmentos(d.segmentos || []);
+    renderPendencias((zoom && zoom.pendencias) || []);
+    renderMapaPresenca(d.municipios || [], false, d.mapaAviso || '');
+    renderResumoOficial(d.resumo || {});
+    renderUltimos(d.ultimosVotos || []);
+    ativarPulsoDashboard();
+  }
+
+  function renderDonut(lista) {
+    const total = lista.reduce(function(acc, v) { return acc + Number(v.peso || 0); }, 0);
+    const donut = el('dashDonut');
+    const legenda = el('dashLegenda');
+    legenda.innerHTML = '';
+
+    if (!total) {
+      donut.style.background = 'conic-gradient(#e5e7eb 0 100%)';
+      legenda.innerHTML = '<div class="mini">Sem votos lançados.</div>';
+      return;
+    }
+
+    let atual = 0;
+    const partes = [];
+    lista.forEach(function(v, i) {
+      const valor = Number(v.peso || 0);
+      const inicio = atual;
+      const fim = atual + (valor / total) * 100;
+      const cor = corVotoDashboard(v.label, i);
+      partes.push(cor + ' ' + inicio.toFixed(2) + '% ' + fim.toFixed(2) + '%');
+      atual = fim;
+
+      const item = document.createElement('div');
+      item.className = 'legend-item';
+      item.innerHTML = '<span class="dot" style="background:' + cor + '"></span>' +
+        '<span>' + esc(v.label) + '</span>' +
+        '<b>' + n(v.peso) + '</b>';
+      legenda.appendChild(item);
+    });
+    donut.style.background = 'conic-gradient(' + partes.join(',') + ')';
+  }
+
+  function corVotoDashboard(label, indice) {
+    const chave = String(label || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+
+    if (CORES_VOTOS[chave]) return CORES_VOTOS[chave];
+    if (chave.indexOf('favoravel') !== -1 || chave === 'aprovado') return CORES_VOTOS.favoravel;
+    if (chave.indexOf('ausente') !== -1) return CORES_VOTOS.ausente;
+    if (chave.indexOf('abstenc') !== -1) return CORES_VOTOS.abstencao;
+    if (chave.indexOf('impedido') !== -1) return CORES_VOTOS.impedido;
+    if (chave.indexOf('branco') !== -1) return CORES_VOTOS.branco;
+    if (chave === 'nao' || chave.indexOf('contrario') !== -1) return CORES_VOTOS.nao;
+    if (chave === 'sim') return CORES_VOTOS.sim;
+
+    // Nomes de candidatos e categorias não padronizadas permanecem em azul.
+    return CORES_GRAFICO[indice % CORES_GRAFICO.length] || '#003f88';
+  }
+
+  function renderSegmentos(lista) {
+    const box = el('dashSegmentos');
+    box.innerHTML = '';
+    if (!lista.length) {
+      box.innerHTML = '<div class="mini">Sem dados.</div>';
+      return;
+    }
+    let itensCorDashboard = 0;
+    lista.forEach(function(s) {
+      const total = Number(s.membros || 0);
+      const presentes = Number(s.presentes || 0);
+      const perc = total ? Math.round((presentes / total) * 100) : 0;
+      const item = document.createElement('div');
+      item.className = 'bar-item';
+      const cor = CORES_GRAFICO[itensCorDashboard % CORES_GRAFICO.length];
+      itensCorDashboard += 1;
+      item.innerHTML = '<div class="bar-item-label"><span>' + esc(s.segmento) + '</span><span>' + presentes + '/' + total + '</span></div>' +
+        '<div class="bar-track"><div class="bar-fill" style="width:' + perc + '%;background:linear-gradient(90deg,' + cor + ',#22d3ee,#facc15);background-size:180% 100%"></div></div>';
+      box.appendChild(item);
+    });
+  }
+
+  function renderPendencias(lista) {
+    const box = el('dashPendencias');
+    box.innerHTML = '';
+    if (!lista.length) {
+      box.innerHTML = '<div class="mini">Nenhuma pendência.</div>';
+      return;
+    }
+    lista.slice(0, 6).forEach(function(nome) {
+      const item = document.createElement('div');
+      item.className = 'alert-item';
+      item.textContent = nome;
+      box.appendChild(item);
+    });
+  }
+
+
+
+  function renderMapaPresenca(lista, forcarRecarregamento, aviso) {
+    mapaPresencasAtuais = Array.isArray(lista) ? lista.slice() : [];
+    const resumo = resumirPresencaMunicipios(mapaPresencasAtuais);
+
+    animarNumeroDashboard('mapaPresentes', resumo.presentes);
+    animarNumeroDashboard('mapaAusentes', resumo.ausentes);
+    animarNumeroDashboard('mapaTotalConselho', resumo.total);
+    el('mapaLegendaPresentes').textContent = resumo.presentes;
+    el('mapaLegendaAusentes').textContent = resumo.ausentes;
+    renderListaMunicipiosMapa(mapaPresencasAtuais);
+
+    const host = el('mapaTocantins');
+    if (!host) return;
+
+    if (forcarRecarregamento) mapaGeoJsonCache = null;
+
+    if (mapaGeoJsonCache) {
+      desenharMapaTocantins(mapaGeoJsonCache, mapaPresencasAtuais, aviso);
+      return;
+    }
+
+    host.innerHTML = '<div class="map-empty">Carregando as divisas dos municípios do Tocantins...</div>';
+    carregarGeoJsonMapa(0)
+      .then(function(geojson) {
+        mapaGeoJsonCache = geojson;
+        desenharMapaTocantins(geojson, mapaPresencasAtuais, aviso);
+      })
+      .catch(function() {
+        host.innerHTML = '<div class="map-empty"><b>Não foi possível carregar o mapa.</b><br>Verifique a conexão e clique em “Recarregar mapa”. Os demais dados do dashboard continuam disponíveis.</div>';
+        el('mapaLegendaSemDado').textContent = '-';
+      });
+  }
+
+  function carregarGeoJsonMapa(indice) {
+    const i = Number(indice || 0);
+    if (i >= MAPA_TO_URLS.length) return Promise.reject(new Error('Mapa indisponível'));
+    return fetch(MAPA_TO_URLS[i], { cache: 'force-cache' })
+      .then(function(resp) {
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return resp.json();
+      })
+      .then(function(data) {
+        if (!data || !Array.isArray(data.features)) throw new Error('GeoJSON inválido');
+        return data;
+      })
+      .catch(function() { return carregarGeoJsonMapa(i + 1); });
+  }
+
+  function desenharMapaTocantins(geojson, lista, aviso) {
+    const host = el('mapaTocantins');
+    if (!host || !geojson || !Array.isArray(geojson.features)) return;
+
+    const statusMap = {};
+    (lista || []).forEach(function(item) {
+      const nome = limparNomeMunicipioMapa(item && (item.nome || item.ente || item.municipio));
+      const key = normalizarNomeMapa(nome);
+      if (!key) return;
+      const status = statusMunicipioMapa(item);
+      if (!statusMap[key] || status === 'presente') statusMap[key] = Object.assign({}, item, { nome, statusMapa: status });
+    });
+
+    const width = MAPA_VIEWBOX_BASE.width;
+    const height = MAPA_VIEWBOX_BASE.height;
+    const bounds = calcularLimitesGeoJson(geojson.features);
+    if (!bounds) {
+      host.innerHTML = '<div class="map-empty">A malha municipal recebida não contém coordenadas válidas.</div>';
+      return;
+    }
+
+    const dx = Math.max(.0001, bounds.maxX - bounds.minX);
+    const dy = Math.max(.0001, bounds.maxY - bounds.minY);
+    const padding = 25;
+    const scale = Math.min((width - padding * 2) / dx, (height - padding * 2) / dy);
+    const mapW = dx * scale;
+    const mapH = dy * scale;
+    const offX = (width - mapW) / 2;
+    const offY = (height - mapH) / 2;
+
+    function projetar(coord) {
+      return [
+        offX + (Number(coord[0]) - bounds.minX) * scale,
+        height - (offY + (Number(coord[1]) - bounds.minY) * scale)
+      ];
+    }
+
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Mapa de presença dos municípios do Tocantins');
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+    let semDado = 0;
+    const labelGroup = document.createElementNS(ns, 'g');
+    labelGroup.setAttribute('id', 'mapaLabelsGrupo');
+    labelGroup.style.display = mapaNomesVisiveis ? '' : 'none';
+
+    geojson.features.forEach(function(feature) {
+      const nome = nomeFeatureMapa(feature);
+      const key = normalizarNomeMapa(nome);
+      const dado = statusMap[key] || null;
+      const status = dado ? dado.statusMapa : 'sem-dado';
+      if (!dado) semDado += 1;
+
+      const pathData = geometriaParaPathMapa(feature.geometry, projetar);
+      if (!pathData) return;
+
+      const path = document.createElementNS(ns, 'path');
+      path.setAttribute('d', pathData);
+      path.setAttribute('class', 'map-municipio' + (key === mapaMunicipioSelecionadoNorm ? ' selected' : ''));
+      path.setAttribute('fill', status === 'presente' ? MAPA_CORES.presente : status === 'ausente' ? MAPA_CORES.ausente : MAPA_CORES.semDado);
+      path.setAttribute('tabindex', '0');
+      path.dataset.nomeNorm = key;
+      path.dataset.nome = nome;
+
+      const title = document.createElementNS(ns, 'title');
+      const representanteTooltip = obterRepresentanteMunicipio(dado);
+      title.textContent = nome + ': ' + textoStatusMunicipioMapa(dado) + (representanteTooltip ? ' · Representante: ' + representanteTooltip : '');
+      path.appendChild(title);
+
+      const selecionar = function() { selecionarMunicipioMapa(nome, dado, key, true); };
+      path.addEventListener('click', selecionar);
+      path.addEventListener('keydown', function(ev) {
+        if (ev.key === 'Enter' || ev.key === ' ') {
+          ev.preventDefault();
+          selecionar();
+        }
+      });
+      svg.appendChild(path);
+
+      const centro = centroFeatureMapa(feature, projetar);
+      if (centro) {
+        const label = document.createElementNS(ns, 'text');
+        label.setAttribute('x', centro[0].toFixed(1));
+        label.setAttribute('y', centro[1].toFixed(1));
+        label.setAttribute('class', 'map-label');
+        label.textContent = abreviarNomeMapa(nome);
+        labelGroup.appendChild(label);
+      }
+    });
+
+    svg.appendChild(labelGroup);
+    host.innerHTML = '';
+    host.appendChild(svg);
+    configurarInteracaoMapa(svg, width, height);
+    el('mapaLegendaSemDado').textContent = semDado;
+
+    if (aviso && !(lista || []).length) {
+      el('mapaMunicipioSelecionado').innerHTML = '<strong>Mapa carregado sem vínculo de presença</strong><span>' + esc(aviso) + '</span>';
+    }
+  }
+
+  function resumirPresencaMunicipios(lista) {
+    let presentes = 0;
+    let ausentes = 0;
+    const vistos = {};
+    (lista || []).forEach(function(item) {
+      const nome = limparNomeMunicipioMapa(item && (item.nome || item.ente || item.municipio));
+      const key = normalizarNomeMapa(nome);
+      if (!key || vistos[key]) return;
+      vistos[key] = true;
+      if (statusMunicipioMapa(item) === 'presente') presentes += 1;
+      else ausentes += 1;
+    });
+    return { presentes, ausentes, total: presentes + ausentes };
+  }
+
+  function renderListaMunicipiosMapa(lista) {
+    const box = el('mapaListaMunicipios');
+    if (!box) return;
+    const itens = [];
+    const vistos = {};
+
+    (lista || []).forEach(function(item) {
+      const nome = limparNomeMunicipioMapa(item && (item.nome || item.ente || item.municipio));
+      const key = normalizarNomeMapa(nome);
+      if (!key || vistos[key]) return;
+      vistos[key] = true;
+      itens.push(Object.assign({}, item, { nomeLimpo: nome, nomeNorm: key, statusMapa: statusMunicipioMapa(item) }));
+    });
+
+    itens.sort(function(a, b) { return a.nomeLimpo.localeCompare(b.nomeLimpo, 'pt-BR'); });
+    box.innerHTML = '';
+    if (!itens.length) {
+      box.innerHTML = '<div class="mini">Nenhum município foi recebido. Instale o patch do Code.gs para enviar a presença ao mapa.</div>';
+      return;
+    }
+
+    itens.forEach(function(item) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'map-list-item';
+      const representante = obterRepresentanteMunicipio(item);
+      btn.innerHTML = '<span class="map-list-name">' + esc(item.nomeLimpo) + '</span><i class="map-list-status ' + item.statusMapa + '"></i>';
+      btn.title = representante ? item.nomeLimpo + ' · ' + representante : item.nomeLimpo;
+      btn.onclick = function() { selecionarMunicipioMapa(item.nomeLimpo, item, item.nomeNorm, false); };
+      box.appendChild(btn);
+    });
+  }
+
+  function selecionarMunicipioMapa(nome, dado, key, origemMapa) {
+    if (origemMapa && Date.now() < mapaIgnorarCliqueAte) return;
+
+    mapaMunicipioSelecionadoNorm = key || normalizarNomeMapa(nome);
+    document.querySelectorAll('.map-municipio').forEach(function(path) {
+      path.classList.toggle('selected', path.dataset.nomeNorm === mapaMunicipioSelecionadoNorm);
+    });
+    document.querySelectorAll('.map-list-item').forEach(function(item) {
+      item.classList.toggle('selected', normalizarNomeMapa(item.querySelector('.map-list-name')?.textContent || '') === mapaMunicipioSelecionadoNorm);
+    });
+
+    const box = el('mapaMunicipioSelecionado');
+    if (!box) return;
+    const status = textoStatusMunicipioMapa(dado);
+    const detalhe = dado && (dado.presenca || dado.status || dado.situacao)
+      ? String(dado.presenca || dado.status || dado.situacao)
+      : 'Sem registro nesta reunião';
+    const representante = obterRepresentanteMunicipio(dado) || 'Não informado';
+    const statusClasse = status === 'Presente' ? 'presente' : status === 'Ausente' ? 'ausente' : 'sem-dado';
+
+    box.innerHTML =
+      '<div class="map-selected-header"><strong>' + esc(nome || 'Município') + '</strong><i class="map-selected-dot ' + statusClasse + '"></i></div>' +
+      '<div class="map-selected-grid">' +
+        '<span class="map-selected-label">Situação</span><b class="map-selected-value">' + esc(status) + '</b>' +
+        '<span class="map-selected-label">Registro</span><b class="map-selected-value">' + esc(detalhe) + '</b>' +
+        '<span class="map-selected-label">Representante</span><b class="map-selected-value representante">' + esc(representante) + '</b>' +
+      '</div>';
+  }
+
+  function obterRepresentanteMunicipio(dado) {
+    if (!dado) return '';
+    const valor = dado.representante || dado.representantes || dado.nomeRepresentante ||
+      dado.representanteNome || dado.membro || dado.participante || dado.titular || '';
+    if (Array.isArray(valor)) {
+      return valor.map(function(v) {
+        if (v && typeof v === 'object') return v.nome || v.representante || v.nomeRepresentante || '';
+        return String(v || '');
+      }).filter(Boolean).join(', ');
+    }
+    if (valor && typeof valor === 'object') return String(valor.nome || valor.representante || valor.nomeRepresentante || '');
+    return String(valor || '').trim();
+  }
+
+  function configurarInteracaoMapa(svg, width, height) {
+    mapaSvgAtual = svg;
+    mapaViewport.x = 0;
+    mapaViewport.y = 0;
+    mapaViewport.width = width;
+    mapaViewport.height = height;
+    mapaViewport.zoom = 1;
+    aplicarViewportMapa();
+
+    svg.style.touchAction = 'none';
+    let arrastando = false;
+    let moveu = false;
+    let inicioX = 0;
+    let inicioY = 0;
+    let viewX = 0;
+    let viewY = 0;
+
+    svg.addEventListener('wheel', function(ev) {
+      ev.preventDefault();
+      const ponto = pontoClienteParaMapa(ev.clientX, ev.clientY);
+      zoomMapaPorFator(ev.deltaY < 0 ? 1.22 : 1 / 1.22, ponto.x, ponto.y);
+    }, { passive: false });
+
+    svg.addEventListener('pointerdown', function(ev) {
+      if (ev.button !== 0 || mapaViewport.zoom <= 1) return;
+      arrastando = true;
+      moveu = false;
+      inicioX = ev.clientX;
+      inicioY = ev.clientY;
+      viewX = mapaViewport.x;
+      viewY = mapaViewport.y;
+      svg.setPointerCapture(ev.pointerId);
+      svg.classList.add('panning');
+    });
+
+    svg.addEventListener('pointermove', function(ev) {
+      if (!arrastando) return;
+      const rect = svg.getBoundingClientRect();
+      const dx = (ev.clientX - inicioX) * (mapaViewport.width / Math.max(1, rect.width));
+      const dy = (ev.clientY - inicioY) * (mapaViewport.height / Math.max(1, rect.height));
+      if (Math.abs(ev.clientX - inicioX) + Math.abs(ev.clientY - inicioY) > 5) moveu = true;
+      mapaViewport.x = limitar(viewX - dx, 0, MAPA_VIEWBOX_BASE.width - mapaViewport.width);
+      mapaViewport.y = limitar(viewY - dy, 0, MAPA_VIEWBOX_BASE.height - mapaViewport.height);
+      aplicarViewportMapa();
+    });
+
+    function terminarArrasto(ev) {
+      if (!arrastando) return;
+      arrastando = false;
+      svg.classList.remove('panning');
+      try { svg.releasePointerCapture(ev.pointerId); } catch (e) {}
+      if (moveu) mapaIgnorarCliqueAte = Date.now() + 280;
+    }
+
+    svg.addEventListener('pointerup', terminarArrasto);
+    svg.addEventListener('pointercancel', terminarArrasto);
+  }
+
+  function ajustarZoomMapa(direcao) {
+    if (!mapaSvgAtual) return;
+    const centroX = mapaViewport.x + mapaViewport.width / 2;
+    const centroY = mapaViewport.y + mapaViewport.height / 2;
+    zoomMapaPorFator(direcao > 0 ? 1.3 : 1 / 1.3, centroX, centroY);
+  }
+
+  function zoomMapaPorFator(fator, ancoraX, ancoraY) {
+    if (!mapaSvgAtual) return;
+    const zoomNovo = limitar(mapaViewport.zoom * fator, 1, 5);
+    const larguraNova = MAPA_VIEWBOX_BASE.width / zoomNovo;
+    const alturaNova = MAPA_VIEWBOX_BASE.height / zoomNovo;
+    const proporcaoX = mapaViewport.width ? (ancoraX - mapaViewport.x) / mapaViewport.width : .5;
+    const proporcaoY = mapaViewport.height ? (ancoraY - mapaViewport.y) / mapaViewport.height : .5;
+
+    mapaViewport.x = limitar(ancoraX - larguraNova * proporcaoX, 0, MAPA_VIEWBOX_BASE.width - larguraNova);
+    mapaViewport.y = limitar(ancoraY - alturaNova * proporcaoY, 0, MAPA_VIEWBOX_BASE.height - alturaNova);
+    mapaViewport.width = larguraNova;
+    mapaViewport.height = alturaNova;
+    mapaViewport.zoom = zoomNovo;
+    aplicarViewportMapa();
+  }
+
+  function resetarZoomMapa() {
+    if (!mapaSvgAtual) return;
+    mapaViewport.x = 0;
+    mapaViewport.y = 0;
+    mapaViewport.width = MAPA_VIEWBOX_BASE.width;
+    mapaViewport.height = MAPA_VIEWBOX_BASE.height;
+    mapaViewport.zoom = 1;
+    aplicarViewportMapa();
+  }
+
+  function aplicarViewportMapa() {
+    if (!mapaSvgAtual) return;
+    mapaSvgAtual.setAttribute('viewBox', [
+      mapaViewport.x.toFixed(2),
+      mapaViewport.y.toFixed(2),
+      mapaViewport.width.toFixed(2),
+      mapaViewport.height.toFixed(2)
+    ].join(' '));
+    mapaSvgAtual.classList.toggle('zoomed', mapaViewport.zoom > 1.01);
+    const nivel = el('mapaZoomNivel');
+    if (nivel) nivel.textContent = Math.round(mapaViewport.zoom * 100) + '%';
+    const menos = el('mapaZoomMenos');
+    const mais = el('mapaZoomMais');
+    if (menos) menos.disabled = mapaViewport.zoom <= 1.01;
+    if (mais) mais.disabled = mapaViewport.zoom >= 4.99;
+  }
+
+  function pontoClienteParaMapa(clientX, clientY) {
+    if (!mapaSvgAtual) return { x: MAPA_VIEWBOX_BASE.width / 2, y: MAPA_VIEWBOX_BASE.height / 2 };
+    const rect = mapaSvgAtual.getBoundingClientRect();
+    const px = limitar((clientX - rect.left) / Math.max(1, rect.width), 0, 1);
+    const py = limitar((clientY - rect.top) / Math.max(1, rect.height), 0, 1);
+    return {
+      x: mapaViewport.x + px * mapaViewport.width,
+      y: mapaViewport.y + py * mapaViewport.height
+    };
+  }
+
+  function limitar(valor, minimo, maximo) {
+    return Math.max(minimo, Math.min(maximo, valor));
+  }
+
+  function alternarNomesMapa() {
+    mapaNomesVisiveis = !mapaNomesVisiveis;
+    const grupo = el('mapaLabelsGrupo');
+    if (grupo) grupo.style.display = mapaNomesVisiveis ? '' : 'none';
+    const btn = el('mapaNomesBtn');
+    if (btn) btn.textContent = mapaNomesVisiveis ? 'Ocultar nomes' : 'Mostrar nomes';
+  }
+
+  function statusMunicipioMapa(item) {
+    if (!item) return 'sem-dado';
+    if (typeof item.presente === 'boolean') return item.presente ? 'presente' : 'ausente';
+    const txt = normalizarNomeMapa(item.presenca || item.status || item.situacao || '');
+    return txt.indexOf('presente') >= 0 ? 'presente' : 'ausente';
+  }
+
+  function textoStatusMunicipioMapa(item) {
+    if (!item) return 'Fora do conselho ou sem dado';
+    return statusMunicipioMapa(item) === 'presente' ? 'Presente' : 'Ausente';
+  }
+
+  function limparNomeMunicipioMapa(nome) {
+    return String(nome || '')
+      .replace(/^\s*(munic[ií]pio|prefeitura municipal|prefeitura)\s+(de|do|da|dos|das)\s+/i, '')
+      .replace(/\s*[-–—]\s*to\s*$/i, '')
+      .replace(/\s*\/\s*to\s*$/i, '')
+      .trim();
+  }
+
+  function normalizarNomeMapa(valor) {
+    return limparNomeMunicipioMapa(valor)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+  }
+
+  function nomeFeatureMapa(feature) {
+    const p = feature && feature.properties ? feature.properties : {};
+    return String(p.name || p.nome || p.NM_MUN || p.NOME || p.description || p.DESCRIPTION || p.municipio || p.MUNICIPIO || p.id || 'Município');
+  }
+
+  function calcularLimitesGeoJson(features) {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    function visitar(node) {
+      if (!Array.isArray(node)) return;
+      if (node.length >= 2 && typeof node[0] === 'number' && typeof node[1] === 'number') {
+        minX = Math.min(minX, node[0]);
+        maxX = Math.max(maxX, node[0]);
+        minY = Math.min(minY, node[1]);
+        maxY = Math.max(maxY, node[1]);
+        return;
+      }
+      node.forEach(visitar);
+    }
+    (features || []).forEach(function(f) { if (f && f.geometry) visitar(f.geometry.coordinates); });
+    if (!isFinite(minX) || !isFinite(minY) || !isFinite(maxX) || !isFinite(maxY)) return null;
+    return { minX, minY, maxX, maxY };
+  }
+
+  function geometriaParaPathMapa(geometry, projetar) {
+    if (!geometry || !geometry.coordinates) return '';
+    const polys = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.type === 'MultiPolygon' ? geometry.coordinates : [];
+    const partes = [];
+    polys.forEach(function(poly) {
+      poly.forEach(function(ring) {
+        if (!Array.isArray(ring) || ring.length < 3) return;
+        const pontos = ring.map(projetar);
+        partes.push(pontos.map(function(p, i) {
+          return (i ? 'L' : 'M') + p[0].toFixed(2) + ',' + p[1].toFixed(2);
+        }).join(' ') + ' Z');
+      });
+    });
+    return partes.join(' ');
+  }
+
+  function centroFeatureMapa(feature, projetar) {
+    if (!feature || !feature.geometry) return null;
+    const polys = feature.geometry.type === 'Polygon' ? [feature.geometry.coordinates] : feature.geometry.type === 'MultiPolygon' ? feature.geometry.coordinates : [];
+    let melhor = null;
+    let melhorArea = -1;
+
+    polys.forEach(function(poly) {
+      const ring = poly && poly[0];
+      if (!ring || ring.length < 3) return;
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      ring.forEach(function(c) {
+        minX = Math.min(minX, c[0]); maxX = Math.max(maxX, c[0]);
+        minY = Math.min(minY, c[1]); maxY = Math.max(maxY, c[1]);
+      });
+      const area = (maxX - minX) * (maxY - minY);
+      if (area > melhorArea) {
+        melhorArea = area;
+        melhor = projetar([(minX + maxX) / 2, (minY + maxY) / 2]);
+      }
+    });
+    return melhor;
+  }
+
+  function abreviarNomeMapa(nome) {
+    const txt = String(nome || '');
+    if (txt.length <= 16) return txt;
+    return txt.replace(/ do Tocantins$/i, ' do TO').replace(/ de Nazaré$/i, ' de Naz.').slice(0, 20);
+  }
+
+
+  function renderResumoOficial(resumo) {
+    const box = el('dashResumoOficial');
+    const linhas = resumo && resumo.linhas ? resumo.linhas : [];
+    if (!linhas.length) {
+      box.innerHTML = '<div class="mini">Nenhum resumo oficial encontrado na aba de votação.</div>';
+      return;
+    }
+    let html = '<table class="dash-table"><thead><tr><th>Indicador</th><th>Resultado</th></tr></thead><tbody>';
+    linhas.slice(0, 18).forEach(function(l) {
+      html += '<tr><td><b>' + esc(l.indicador || '-') + '</b></td><td>' + esc(l.resultado || '-') + '</td></tr>';
+    });
+    html += '</tbody></table>';
+    box.innerHTML = html;
+  }
+
+  function renderUltimos(lista) {
+    const box = el('dashUltimos');
+    if (!lista.length) {
+      box.innerHTML = '<div class="mini">Nenhum voto registrado ainda.</div>';
+      return;
+    }
+    let html = '<table class="dash-table"><thead><tr><th>Ente</th><th>Voto</th><th>Ação</th></tr></thead><tbody>';
+    lista.forEach(function(v) {
+      html += '<tr><td><b>' + esc(v.ente || '-') + '</b><div class="mini">' + esc(v.representante || '') + '</div></td>' +
+        '<td>' + esc(v.voto || '-') + '</td><td>' + esc(v.acao || '-') + '</td></tr>';
+    });
+    html += '</tbody></table>';
+    box.innerHTML = html;
+  }
+
+
+  function animarNumeroDashboard(id, valor) {
+    const node = el(id);
+    if (!node) return;
+    const alvo = Number(valor || 0);
+    const inicio = Number(node.dataset.valorAtual || 0);
+    const reduzirMovimento = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    node.dataset.valorAtual = String(alvo);
+    node.classList.remove('metric-flash');
+    void node.offsetWidth;
+    node.classList.add('metric-flash');
+
+    if (reduzirMovimento || !Number.isFinite(alvo)) {
+      node.textContent = n(alvo);
+      return;
+    }
+
+    const inicioTempo = performance.now();
+    const duracao = 720;
+    function quadro(agora) {
+      const t = Math.min(1, (agora - inicioTempo) / duracao);
+      const suavizado = 1 - Math.pow(1 - t, 3);
+      node.textContent = n(inicio + (alvo - inicio) * suavizado);
+      if (t < 1) requestAnimationFrame(quadro);
+      else node.textContent = n(alvo);
+    }
+    requestAnimationFrame(quadro);
+  }
+
+  function atualizarRelogioDashboard() {
+    const node = el('dashAtualizado');
+    if (!node) return;
+    node.textContent = new Date().toLocaleTimeString('pt-BR', {
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+  }
+
+  function ativarPulsoDashboard() {
+    const tela = el('screen-dashboard');
+    if (!tela) return;
+    tela.classList.remove('dashboard-refresh');
+    void tela.offsetWidth;
+    tela.classList.add('dashboard-refresh');
+    setTimeout(function() { tela.classList.remove('dashboard-refresh'); }, 900);
+  }
+
+  function n(v) {
+    const num = Number(v || 0);
+    if (Math.abs(num - Math.round(num)) < 0.0001) return String(Math.round(num));
+    return num.toFixed(1).replace('.', ',');
+  }
+
+  function abrirAliases() { run('abrirAbaAliasesZoom', [], function() { setMsg('Aba ALIASES_ZOOM aberta.', 'ok'); }, 'Abrindo aba...'); }
+  function abrirDebugMatch() { run('abrirAbaDebugMatchZoom', [], function() { setMsg('Aba DEBUG_MATCH aberta.', 'ok'); }, 'Abrindo aba...'); }
+
+  function err(e) { setMsg('Erro: ' + (e && e.message ? e.message : e), 'err'); }
+
+  function esc(v) {
+    return String(v || '').replace(/[&<>"']/g, function(s) {
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s];
+    });
+  }
+
+  document.addEventListener('click', function(e) {
+    const b = e.target.closest('button');
+    if (!b || b.disabled) return;
+    const r = b.getBoundingClientRect();
+    b.style.setProperty('--x', (e.clientX - r.left) + 'px');
+    b.style.setProperty('--y', (e.clientY - r.top) + 'px');
+    b.classList.add('clicado');
+    setTimeout(function() { b.classList.remove('clicado'); }, 260);
+  });
+
+  aplicarTamanhoSalvo();
+  carregar();
+</script>
+</body>
+</html>
