@@ -4,18 +4,8 @@
  *
  * CORREÇÃO PRINCIPAL DESTA VERSÃO
  * Presença final = participantes ativos no Zoom + presenças lançadas no Plano B.
- * Uma fonte não apaga a outra durante a mesma sessão da reunião.
- *
- * INSTALAÇÃO
- * 1. Apague TODO o conteúdo do Code.gs atual.
- * 2. Cole este arquivo inteiro no Code.gs.
- * 3. Não mantenha patches ou funções duplicadas em outros arquivos .gs.
- * 4. Salve o projeto.
- * 5. Recarregue a planilha.
- * 6. Em Implantar > Gerenciar implantações, publique uma nova versão do Web App.
- * 7. Confirme que o Cloudflare usa a URL /exec da implantação atual.
- */
-
+ * Uma fonte não apaga a outra durante a mesma sessão da reunião
+*/
 const FASE1_CONFIG = {
   headerRow: 4,
   firstDataRow: 5,
@@ -335,30 +325,244 @@ function resetarPresencaAoVivo() {
 function obterStatusPresencaAoVivo() {
   rememberSpreadsheetId_();
 
-  const active = getReuniaoAoVivoAtiva_();
-  const publicToken = getProps_().getProperty(FASE2_CONFIG.zoomUrlTokenProperty) || '';
-  const secretOk = !!getProps_().getProperty(FASE2_CONFIG.zoomSecretProperty);
-  const ativos = active && active.meetingId ? getZoomActiveParticipants_(active.meetingId) : [];
-  const pendencias = readPendenciasZoom_();
+  const active =
+    getReuniaoAoVivoAtiva_();
 
-  let manuais = [];
-  if (active) {
-    const contexto = contextoDaReuniaoAtiva_(active);
-    manuais = lerPresencasManuaisSessao_(contexto, active);
+  const publicToken =
+    getProps_().getProperty(
+      FASE2_CONFIG.zoomUrlTokenProperty
+    ) || '';
+
+  const secretOk =
+    !!getProps_().getProperty(
+      FASE2_CONFIG.zoomSecretProperty
+    );
+
+  let pendencias = [];
+
+  try {
+    pendencias =
+      readPendenciasZoom_();
+  } catch (e) {
+    pendencias = [];
   }
+
+  const presentes =
+    active
+      ? listarPresentesCorrelacionados_(active)
+      : [];
 
   return {
     ok: true,
-    configurado: !!publicToken,
-    secretConfigurado: secretOk,
-    url: obterUrlWebhookZoom_(),
-    reuniaoAtiva: active,
-    ativos: ativos,
-    totalAtivos: ativos.length,
-    presencasManuais: manuais,
-    totalManuais: manuais.length,
-    pendencias: pendencias
+
+    configurado:
+      !!publicToken,
+
+    secretConfigurado:
+      secretOk,
+
+    url:
+      obterUrlWebhookZoom_(),
+
+    reuniaoAtiva:
+      active,
+
+    /*
+     * Mantemos esses nomes
+     * para o Sidebar atual continuar funcionando.
+     */
+    ativos:
+      presentes,
+
+    totalAtivos:
+      presentes.length,
+
+    presentesCorrelacionados:
+      presentes,
+
+    totalPresentesCorrelacionados:
+      presentes.length,
+
+    pendencias:
+      pendencias
   };
+}
+function listarPresentesCorrelacionados_(active) {
+  if (
+    !active ||
+    !active.conselho
+  ) {
+    return [];
+  }
+
+  const ss =
+    getSS_();
+
+  const sufixo =
+    FASE1_CONFIG.conselhos[
+      active.conselho
+    ];
+
+  if (!sufixo) {
+    return [];
+  }
+
+  /*
+   * A fonte oficial será sempre
+   * a tabela de instalação.
+   */
+  const sheet =
+    ss.getSheetByName(
+      'Inst_' + sufixo
+    );
+
+  if (!sheet) {
+    return [];
+  }
+
+  const cols =
+    getColunasPresenca_(sheet);
+
+  const lastRow =
+    getUltimaLinhaDados_(
+      sheet,
+      cols.ente
+    );
+
+  if (
+    lastRow <
+    FASE1_CONFIG.firstDataRow
+  ) {
+    return [];
+  }
+
+  const numRows =
+    lastRow -
+    FASE1_CONFIG.firstDataRow +
+    1;
+
+  const values =
+    sheet
+      .getRange(
+        FASE1_CONFIG.firstDataRow,
+        1,
+        numRows,
+        sheet.getLastColumn()
+      )
+      .getDisplayValues();
+
+  const presentes = [];
+  const nomesJaIncluidos = {};
+
+  values.forEach(function(
+    row,
+    indice
+  ) {
+    const status =
+      String(
+        row[
+          cols.presenca - 1
+        ] || ''
+      ).trim();
+
+    const statusNorm =
+      norm_(status);
+
+    const ehPresente =
+      statusNorm ===
+        norm_('Presente titular') ||
+      statusNorm ===
+        norm_('Presente suplente');
+
+    if (!ehPresente) {
+      return;
+    }
+
+    const titular =
+      cols.titular
+        ? String(
+            row[
+              cols.titular - 1
+            ] || ''
+          ).trim()
+        : '';
+
+    const suplente =
+      cols.suplente
+        ? String(
+            row[
+              cols.suplente - 1
+            ] || ''
+          ).trim()
+        : '';
+
+    const ente =
+      cols.ente
+        ? String(
+            row[
+              cols.ente - 1
+            ] || ''
+          ).trim()
+        : '';
+
+    let nomeOficial = '';
+    let tipo = '';
+
+    if (
+      statusNorm ===
+      norm_('Presente suplente')
+    ) {
+      nomeOficial =
+        suplente ||
+        titular;
+
+      tipo =
+        'Suplente';
+    } else {
+      nomeOficial =
+        titular ||
+        suplente;
+
+      tipo =
+        'Titular';
+    }
+
+    if (!nomeOficial) {
+      return;
+    }
+
+    const chave =
+      norm_(nomeOficial);
+
+    if (
+      nomesJaIncluidos[chave]
+    ) {
+      return;
+    }
+
+    nomesJaIncluidos[chave] =
+      true;
+
+    presentes.push({
+      nome:
+        nomeOficial,
+
+      ente:
+        ente,
+
+      tipo:
+        tipo,
+
+      status:
+        status,
+
+      linha:
+        FASE1_CONFIG.firstDataRow +
+        indice
+    });
+  });
+
+  return presentes;
 }
 
 /** =========================
@@ -516,18 +720,7 @@ function processarEventoZoom_(body) {
     };
   }
 
-  if (event === 'meeting.participant_left') {
-    if (!nome) return { ok: true, ignorado: true, motivo: 'Evento de saída sem nome', event: event };
-    registrarParticipanteZoomAtivo_(active, nome, email, 'SAIU', eventoData);
-    return {
-      ok: true,
-      event: event,
-      acao: 'SAIU',
-      participante: nome,
-      meetingId: meetingId,
-      atualizacao: atualizarPresencaPorAtivosZoom_(active)
-    };
-  }
+  
 
   return {
     ok: true,
@@ -927,62 +1120,257 @@ function getAbasPresencaConselho_(contexto) {
     .filter(function(sheet) { return !!sheet; });
 }
 
-function atualizarPresencaEmAba_(sheet, participantes, aliases, matchedNorms) {
+function atualizarPresencaEmAba_(
+  sheet,
+  participantes,
+  aliases,
+  matchedNorms
+) {
   const cols = getColunasPresenca_(sheet);
-  const lastRow = getUltimaLinhaDados_(sheet, cols.ente);
-  const numRows = Math.max(0, lastRow - FASE1_CONFIG.firstDataRow + 1);
+
+  // PROTEÇÃO: só permite escrever na coluna de presença.
+  const cabecalhoPresenca = String(
+    sheet
+      .getRange(
+        FASE1_CONFIG.headerRow,
+        cols.presenca
+      )
+      .getDisplayValue() || ''
+  ).trim();
+
+  const cabecalhoOk =
+    norm_(cabecalhoPresenca) ===
+      norm_('Situação de presença') ||
+    norm_(cabecalhoPresenca) ===
+      norm_('Comparecimento');
+
+  if (!cabecalhoOk) {
+    throw new Error(
+      'Proteção ativada. Coluna de presença inválida na aba ' +
+      sheet.getName() +
+      ': ' +
+      cabecalhoPresenca
+    );
+  }
+
+  const lastRow =
+    getUltimaLinhaDados_(
+      sheet,
+      cols.ente
+    );
+
+  const numRows = Math.max(
+    0,
+    lastRow -
+      FASE1_CONFIG.firstDataRow +
+      1
+  );
 
   if (numRows === 0) {
-    return { aba: sheet.getName(), presentes: 0, ausentes: 0, atualizada: false };
+    return {
+      aba: sheet.getName(),
+      presentes: 0,
+      ausentes: 0,
+      atualizada: false
+    };
   }
 
   const values = sheet
-    .getRange(FASE1_CONFIG.firstDataRow, 1, numRows, sheet.getLastColumn())
+    .getRange(
+      FASE1_CONFIG.firstDataRow,
+      1,
+      numRows,
+      sheet.getLastColumn()
+    )
     .getDisplayValues();
 
   const presencas = [];
   const debugRows = [];
+
   let presentes = 0;
   let ausentes = 0;
 
-  values.forEach(function(rowValues, idx) {
-    const rowNumber = FASE1_CONFIG.firstDataRow + idx;
-    const match = encontrarParticipanteNaLinha_(rowValues, cols, participantes, aliases);
+  values.forEach(function(
+    rowValues,
+    idx
+  ) {
+    const rowNumber =
+      FASE1_CONFIG.firstDataRow +
+      idx;
 
-    const ente = cols.ente ? String(rowValues[cols.ente - 1] || '').trim() : '';
-    const representante = cols.representante ? String(rowValues[cols.representante - 1] || '').trim() : '';
-    const titular = cols.titular ? String(rowValues[cols.titular - 1] || '').trim() : '';
-    const suplente = cols.suplente ? String(rowValues[cols.suplente - 1] || '').trim() : '';
+    // Estado que já está na planilha.
+    const statusAtual = String(
+      rowValues[
+        cols.presenca - 1
+      ] || ''
+    ).trim();
 
-    if (match && match.nomeZoom) {
-      const status = match.condicao === 'suplente' ? 'Presente suplente' : 'Presente titular';
-      presencas.push([status]);
+    const match =
+      encontrarParticipanteNaLinha_(
+        rowValues,
+        cols,
+        participantes,
+        aliases
+      );
+
+    const ente = cols.ente
+      ? String(
+          rowValues[
+            cols.ente - 1
+          ] || ''
+        ).trim()
+      : '';
+
+    const representante =
+      cols.representante
+        ? String(
+            rowValues[
+              cols.representante - 1
+            ] || ''
+          ).trim()
+        : '';
+
+    const titular =
+      cols.titular
+        ? String(
+            rowValues[
+              cols.titular - 1
+            ] || ''
+          ).trim()
+        : '';
+
+    const suplente =
+      cols.suplente
+        ? String(
+            rowValues[
+              cols.suplente - 1
+            ] || ''
+          ).trim()
+        : '';
+
+    if (
+      match &&
+      match.nomeZoom
+    ) {
+      let novoStatus =
+        match.condicao ===
+        'suplente'
+          ? 'Presente suplente'
+          : 'Presente titular';
+
+      /*
+       * Se o titular já foi registrado,
+       * o suplente não rebaixa a presença.
+       */
+      if (
+        norm_(statusAtual) ===
+        norm_('Presente titular')
+      ) {
+        novoStatus =
+          'Presente titular';
+      }
+
+      presencas.push([
+        novoStatus
+      ]);
+
       presentes++;
-      matchedNorms[norm_(match.nomeZoom)] = true;
+
+      matchedNorms[
+        norm_(match.nomeZoom)
+      ] = true;
 
       debugRows.push([
-        new Date(), sheet.getName(), rowNumber, match.nomeZoom, match.via, status,
-        ente, representante, titular, suplente
+        new Date(),
+        sheet.getName(),
+        rowNumber,
+        match.nomeZoom,
+        match.via,
+        novoStatus,
+        ente,
+        representante,
+        titular,
+        suplente
       ]);
+
     } else {
-      presencas.push(['Ausente']);
-      ausentes++;
+
+      /*
+       * ALTERAÇÃO PRINCIPAL.
+       *
+       * Antes:
+       * presencas.push(['Ausente']);
+       *
+       * Agora:
+       * mantém exatamente o que já estava.
+       */
+
+      const statusPreservado =
+        statusAtual ||
+        'Ausente';
+
+      presencas.push([
+        statusPreservado
+      ]);
+
+      if (
+        norm_(statusPreservado) ===
+          norm_('Presente titular') ||
+        norm_(statusPreservado) ===
+          norm_('Presente suplente')
+      ) {
+        presentes++;
+      } else {
+        ausentes++;
+      }
     }
   });
 
+  /*
+   * Apenas a coluna de presença é escrita.
+   * Titular, suplente, representante e ente
+   * nunca são alterados aqui.
+   */
   sheet
-    .getRange(FASE1_CONFIG.firstDataRow, cols.presenca, numRows, 1)
-    .setValues(presencas);
+    .getRange(
+      FASE1_CONFIG.firstDataRow,
+      cols.presenca,
+      numRows,
+      1
+    )
+    .setValues(
+      presencas
+    );
 
-  if (debugRows.length) {
-    appendLog_(FASE2_CONFIG.debugMatchSheet, [
-      'Data/hora', 'Aba', 'Linha', 'Nome no Zoom', 'Tipo de match', 'Status aplicado',
-      'Ente', 'Representante votante', 'Titular', 'Suplente'
-    ], debugRows);
+  if (
+    debugRows.length
+  ) {
+    appendLog_(
+      FASE2_CONFIG.debugMatchSheet,
+      [
+        'Data/hora',
+        'Aba',
+        'Linha',
+        'Nome no Zoom',
+        'Tipo de match',
+        'Status aplicado',
+        'Ente',
+        'Representante votante',
+        'Titular',
+        'Suplente'
+      ],
+      debugRows
+    );
   }
 
   SpreadsheetApp.flush();
-  return { aba: sheet.getName(), presentes: presentes, ausentes: ausentes, atualizada: true };
+
+  return {
+    aba: sheet.getName(),
+    presentes: presentes,
+    ausentes: ausentes,
+    atualizada: true
+  };
 }
 
 function getColunasPresenca_(sheet) {
@@ -2475,3 +2863,371 @@ function formatarStatusAoVivo_(res) {
 
   return texto;
 }
+/**
+ * PATCH FINAL — PRESERVAR NOMES E ESTADO DA PLANILHA
+ *
+ * Aplicação:
+ * 1. Faça backup do Code.gs atual.
+ * 2. SUBSTITUA no Code.gs as funções com os mesmos nomes.
+ * 3. Não mantenha versões duplicadas.
+ * 4. Adicione validarColunaPresencaSegura_.
+ * 5. Dentro de atualizarPresencaEmAba_, adicione:
+ *      validarColunaPresencaSegura_(sheet, cols);
+ *    imediatamente depois de:
+ *      const cols = getColunasPresenca_(sheet);
+ */
+
+function ativarPresencaAoVivo(payload) {
+  rememberSpreadsheetId_();
+  payload = payload || {};
+
+  const contexto = normalizarPayload_(payload);
+  validarContexto_(contexto);
+  salvarContexto(contexto);
+
+  const meetingId = extrairMeetingId_(payload.meetingId);
+  if (!meetingId) {
+    throw new Error('Informe o Meeting ID do Zoom.');
+  }
+
+  const registro = {
+    ativo: true,
+    conselho: contexto.conselho,
+    pauta: contexto.pauta,
+    candidato: contexto.candidato || FASE1_CONFIG.defaultCandidate,
+    meetingId: meetingId,
+    iniciadoEm: new Date().toISOString(),
+    operador: getUserEmail_()
+  };
+
+  getProps_().setProperty(
+    FASE2_CONFIG.activeMeetingProperty,
+    JSON.stringify(registro)
+  );
+
+  ensureZoomActiveSheet_();
+
+  // Não recalcular aqui. A lista do Zoom ainda está vazia.
+
+  return {
+    ok: true,
+    mensagem:
+      'Presença ao vivo ativada para ' +
+      contexto.conselho +
+      '. Meeting ID: ' +
+      meetingId +
+      '. A planilha será atualizada após a entrada dos participantes.',
+    reuniao: registro
+  };
+}
+
+function desativarPresencaAoVivo() {
+  const active = getReuniaoAoVivoAtiva_();
+
+  if (active && active.meetingId) {
+    marcarTodosZoomComoInativos_(
+      active.meetingId,
+      'DESATIVADA_MANUALMENTE'
+    );
+  }
+
+  getProps_().deleteProperty(
+    FASE2_CONFIG.activeMeetingProperty
+  );
+
+  return {
+    ok: true,
+    mensagem:
+      'Presença ao vivo desativada. O último estado da planilha foi preservado.'
+  };
+}
+
+function resetarPresencaAoVivo() {
+  const active = getReuniaoAoVivoAtiva_();
+
+  if (!active || !active.meetingId) {
+    return {
+      ok: false,
+      mensagem: 'Nenhuma reunião ao vivo ativa para resetar.'
+    };
+  }
+
+  marcarTodosZoomComoInativos_(
+    active.meetingId,
+    'RESET_MANUAL'
+  );
+
+  appendLog_(
+    FASE2_CONFIG.logZoomLiveSheet,
+    [
+      'Recebido em',
+      'Evento Zoom',
+      'Meeting ID',
+      'Tópico',
+      'Nome no Zoom',
+      'E-mail',
+      'Evento em',
+      'Conselho ativo',
+      'Resultado'
+    ],
+    [[
+      new Date(),
+      'RESET_MANUAL',
+      active.meetingId,
+      '',
+      '',
+      '',
+      new Date(),
+      active.conselho,
+      'Controle interno zerado; planilha preservada'
+    ]]
+  );
+
+  return {
+    ok: true,
+    mensagem:
+      'Participantes ativos do Zoom foram zerados internamente. ' +
+      'A planilha não foi recalculada.'
+  };
+}
+
+function processarEventoZoom_(body) {
+  body = body || {};
+  const event = String(body.event || '').trim();
+
+  if (event === 'endpoint.url_validation') {
+    return responderValidacaoZoom_(body);
+  }
+
+  const obj =
+    body.payload && body.payload.object
+      ? body.payload.object
+      : {};
+
+  const participant =
+    obj.participant || body.participant || {};
+
+  const meetingId = normalizarMeetingId_(
+    obj.id ||
+    obj.uuid ||
+    body.id ||
+    body.meeting_id ||
+    ''
+  );
+
+  const topic = String(obj.topic || body.topic || '');
+
+  const nome = String(
+    participant.user_name ||
+    participant.participant_user_name ||
+    participant.name ||
+    participant.display_name ||
+    body.user_name ||
+    ''
+  ).trim();
+
+  const email = String(
+    participant.email ||
+    participant.user_email ||
+    body.email ||
+    ''
+  ).trim();
+
+  const eventoData = dataEventoZoom_(body.event_ts);
+  const active = getReuniaoAoVivoAtiva_();
+
+  appendLog_(
+    FASE2_CONFIG.logZoomLiveSheet,
+    [
+      'Recebido em',
+      'Evento Zoom',
+      'Meeting ID',
+      'Tópico',
+      'Nome no Zoom',
+      'E-mail',
+      'Evento em',
+      'Conselho ativo',
+      'Resultado'
+    ],
+    [[
+      new Date(),
+      event,
+      meetingId,
+      topic,
+      nome,
+      email,
+      eventoData,
+      active ? active.conselho : '',
+      'Recebido pelo Apps Script'
+    ]]
+  );
+
+  if (!active || !active.meetingId) {
+    return {
+      ok: true,
+      ignorado: true,
+      motivo: 'Nenhuma reunião ativa configurada na planilha.',
+      event: event,
+      meetingId: meetingId,
+      nome: nome
+    };
+  }
+
+  const meetingAtivo = normalizarMeetingId_(active.meetingId);
+
+  if (meetingId && meetingId !== meetingAtivo) {
+    return {
+      ok: true,
+      ignorado: true,
+      motivo: 'Evento de outro Meeting ID',
+      meetingRecebido: meetingId,
+      meetingAtivo: meetingAtivo,
+      event: event,
+      nome: nome
+    };
+  }
+
+  if (event === 'meeting.started') {
+    marcarTodosZoomComoInativos_(
+      meetingAtivo,
+      'MEETING_STARTED_RESET'
+    );
+
+    return {
+      ok: true,
+      event: event,
+      mensagem:
+        'Reunião iniciada. O estado interno do Zoom foi reiniciado, ' +
+        'sem recalcular ou esvaziar a planilha.',
+      planilhaPreservada: true
+    };
+  }
+
+  if (event === 'meeting.ended') {
+    marcarTodosZoomComoInativos_(
+      meetingAtivo,
+      'MEETING_ENDED'
+    );
+
+    return {
+      ok: true,
+      event: event,
+      mensagem:
+        'Reunião encerrada. O último estado da planilha foi preservado.',
+      planilhaPreservada: true
+    };
+  }
+
+  if (event === 'meeting.participant_joined') {
+    if (!nome) {
+      return {
+        ok: true,
+        ignorado: true,
+        motivo: 'Evento de entrada sem nome',
+        event: event
+      };
+    }
+
+    registrarParticipanteZoomAtivo_(
+      active,
+      nome,
+      email,
+      'ENTROU',
+      eventoData
+    );
+
+    return {
+      ok: true,
+      event: event,
+      acao: 'ENTROU',
+      participante: nome,
+      meetingId: meetingId,
+      atualizacao: atualizarPresencaPorAtivosZoom_(active)
+    };
+  }
+
+  if (event === 'meeting.participant_left') {
+    if (!nome) {
+      return {
+        ok: true,
+        ignorado: true,
+        motivo: 'Evento de saída sem nome',
+        event: event
+      };
+    }
+
+    registrarParticipanteZoomAtivo_(
+      active,
+      nome,
+      email,
+      'SAIU',
+      eventoData
+    );
+
+    return {
+      ok: true,
+      event: event,
+      acao: 'SAIU',
+      participante: nome,
+      meetingId: meetingId,
+      atualizacao: atualizarPresencaPorAtivosZoom_(active)
+    };
+  }
+
+  return {
+    ok: true,
+    ignorado: true,
+    motivo: 'Evento recebido, mas não tratado.',
+    event: event,
+    meetingId: meetingId,
+    nome: nome
+  };
+}
+
+function validarColunaPresencaSegura_(sheet, cols) {
+  if (!sheet || !cols || !cols.presenca) {
+    throw new Error(
+      'Não foi possível identificar com segurança a coluna de presença.'
+    );
+  }
+
+  const colunasDeNome = [
+    cols.representante,
+    cols.titular,
+    cols.suplente
+  ].filter(function(coluna) {
+    return !!coluna;
+  });
+
+  if (colunasDeNome.indexOf(cols.presenca) >= 0) {
+    throw new Error(
+      'Proteção ativada: a coluna de presença foi identificada ' +
+      'como coluna de nome na aba ' +
+      sheet.getName() +
+      '.'
+    );
+  }
+
+  const cabecalho = String(
+    sheet
+      .getRange(FASE1_CONFIG.headerRow, cols.presenca)
+      .getDisplayValue() || ''
+  ).trim();
+
+  const cabecalhoNormalizado = norm_(cabecalho);
+
+  const permitido =
+    cabecalhoNormalizado === norm_('Situação de presença') ||
+    cabecalhoNormalizado === norm_('Comparecimento');
+
+  if (!permitido) {
+    throw new Error(
+      'Proteção ativada na aba ' +
+      sheet.getName() +
+      '. A coluna que seria atualizada possui o cabeçalho: "' +
+      cabecalho +
+      '".'
+    );
+  }
+}
+
